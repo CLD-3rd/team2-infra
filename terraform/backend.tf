@@ -1,5 +1,6 @@
 terraform { 
   cloud { 
+    
     organization = "team2-SaveMyPodo" 
 
     workspaces { 
