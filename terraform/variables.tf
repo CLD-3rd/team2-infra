@@ -11,3 +11,17 @@ variable "environment" {
   default     = "dev"
   
 }
+
+variable "db_password" {
+  description = "Database master password"
+  type        = string
+  sensitive   = true
+}
+
+variable "alert_emails_raw" {
+  type = string
+}
+
+locals {
+  alert_emails = split(",", var.alert_emails_raw)
+}
