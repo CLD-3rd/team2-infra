@@ -133,6 +133,8 @@ module "route_tables" {
 
 
 
+
+
 # Website Hosting
 locals {
   domain_name = "savemypodo.shop"
@@ -188,11 +190,11 @@ module "certificate" {
   source = "./modules/acm"
 
   domain_name               = local.domain_name
-  subject_alternative_names = ["www.${local.domain_name}"]
+  subject_alternative_names = ["www.${local.domain_name}", "images.${local.domain_name}"]
   zone_id                   = module.dns.zone_id
 
   tags = {
-    Name        = "Website Certificate"
+    Name        = "DNS Certificate"
     Environment = var.environment
   }
 
@@ -209,7 +211,8 @@ module "cdn" {
   origin_id          = "S3-${local.bucket_name}"
   aliases            = [local.domain_name, "www.${local.domain_name}"]
   certificate_arn    = module.certificate.certificate_arn
-
+  service_name       = var.service_name
+  allowed_methods    = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
   custom_error_responses = [
     {
       error_code         = 404
@@ -250,6 +253,15 @@ module "dns_records" {
       alias = {
         name                   = module.cdn.distribution_domain_name
         zone_id                = module.cdn.distribution_hosted_zone_id
+        evaluate_target_health = false
+      }
+    },
+    {
+      name = "images"
+      type = "A"
+      alias = {
+        name                   = module.image_cdn.distribution_domain_name
+        zone_id                = module.image_cdn.distribution_hosted_zone_id
         evaluate_target_health = false
       }
     }
@@ -365,8 +377,6 @@ module "elasticache" {
   security_group_ids = [module.cache_security_group.security_group_id]
   subnet_ids         = module.subnets.private_subnet_ids
 
-  at_rest_encryption_enabled  = true
-  transit_encryption_enabled  = true # 백엔드에서도 tls 사용
   snapshot_retention_limit    = 3
 
   tags = {
@@ -375,3 +385,55 @@ module "elasticache" {
   }
 }
 
+
+
+
+module "image_bucket" {
+  source = "./modules/s3"
+
+  bucket_name               = "${lower(var.service_name)}-images"
+  enable_website            = false
+  block_public_acls         = true
+  block_public_policy       = true
+  ignore_public_acls        = true
+  restrict_public_buckets   = true
+
+  bucket_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "AllowCloudFrontOAC"
+        Effect    = "Allow"
+        Principal = {
+          AWS = module.image_cdn.oac_arn
+        }
+        Action    = "s3:GetObject"
+        Resource  = "arn:aws:s3:::${lower(var.service_name)}-images/*"
+      }
+    ]
+  })
+
+  tags = {
+    Name        = "Image Storage"
+    Environment = var.environment
+  }
+}
+
+module "image_cdn" {
+  source = "./modules/cloudfront"
+
+  origin_domain_name = module.image_bucket.bucket_regional_domain_name
+  origin_id          = "S3-${lower(var.service_name)}-images"
+  aliases            = ["images.${local.domain_name}"]
+  certificate_arn    = module.certificate.certificate_arn
+  use_oac            = true
+  service_name       = var.service_name
+
+  tags = {
+    Name        = "Image CDN"
+    Environment = var.environment
+  }
+
+  depends_on = [module.certificate]
+  
+}

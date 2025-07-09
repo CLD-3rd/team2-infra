@@ -59,3 +59,24 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "use_oac" {
+  description = "Whether to use Origin Access Control (OAC)"
+  type        = bool
+  default     = false
+}
+
+variable "service_name" {
+  description = "Service name for the CloudFront distribution"
+  type        = string
+}
+
+variable "allowed_methods" {
+  type    = list(string)
+  default = ["GET", "HEAD", "OPTIONS"]
+}
+
+variable "cached_methods" {
+  type    = list(string)
+  default = ["GET", "HEAD"]
+}
