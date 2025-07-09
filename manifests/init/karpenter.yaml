@@ -9,7 +9,7 @@ metadata:
   name: karpenter
   namespace: karpenter
   annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::ACCOUNT_ID:role/CLUSTER_NAME-karpenter
+    eks.amazonaws.com/role-arn: arn:aws:iam::418295688903:role/savemypodo-cluster-karpenter
 ---
 apiVersion: karpenter.sh/v1beta1
 kind: NodePool
@@ -19,7 +19,7 @@ spec:
   template:
     metadata:
       labels:
-        karpenter.sh/cluster: CLUSTER_NAME
+        karpenter.sh/cluster: savemypodo-cluster
     spec:
       requirements:
         - key: kubernetes.io/arch
@@ -35,13 +35,13 @@ spec:
           operator: In
           values: ["c", "m", "r"]
         - key: karpenter.k8s.aws/instance-generation
-          operator: Gt #인스턴스 세대가 2보다 큰 것 사용
+          operator: Gt #?�스?�스 ?��?가 2보다 ??�??�용
           values: ["2"]
       nodeClassRef:
         apiVersion: karpenter.k8s.aws/v1beta1
         kind: EC2NodeClass
         name: default
-      # Bootstrap 노드와 구분하기 위한 toleration
+      # Bootstrap ?�드?� 구분?�기 ?�한 toleration
       tolerations:
         - key: karpenter.sh/bootstrap
           operator: Equal
@@ -61,17 +61,17 @@ spec:
   amiFamily: AL2
   subnetSelectorTerms:
     - tags:
-        karpenter.sh/discovery: CLUSTER_NAME
+        karpenter.sh/discovery: savemypodo-cluster
   securityGroupSelectorTerms:
     - tags:
-        karpenter.sh/discovery: CLUSTER_NAME
+        karpenter.sh/discovery: savemypodo-cluster
   instanceStorePolicy: NVME
   userData: |
     #!/bin/bash
-    /etc/eks/bootstrap.sh CLUSTER_NAME
+    /etc/eks/bootstrap.sh savemypodo-cluster
     yum install -y links tree jq tcpdump sysstat htop iotop
 ---
-# Bootstrap 노드 제거용 Job (선택사항)
+# Bootstrap ?�드 ?�거??Job (?�택?�항)
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -88,9 +88,8 @@ spec:
         - /bin/sh
         - -c
         - |
-          # Karpenter 안정화 대기
-          sleep 300
-          # Bootstrap 노드 taint 제거 (일반 워크로드 스케줄링 허용)
-          kubectl taint nodes -l eks.amazonaws.com/nodegroup=CLUSTER_NAME-bootstrap karpenter.sh/bootstrap=true:NoSchedule-
+          # Karpenter ?�정???��?          sleep 300
+          # Bootstrap ?�드 taint ?�거 (?�반 ?�크로드 ?��?줄링 ?�용)
+          kubectl taint nodes -l eks.amazonaws.com/nodegroup=savemypodo-cluster-bootstrap karpenter.sh/bootstrap=true:NoSchedule-
       restartPolicy: OnFailure
   backoffLimit: 3
