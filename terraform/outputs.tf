@@ -53,3 +53,40 @@ output "public_subnet_ids" {
   description = "IDs of the public subnets"
   value       = module.subnets.public_subnet_ids
 }
+
+# EKS outputs
+output "eks_cluster_id" {
+  description = "EKS cluster ID"
+  value       = module.eks.cluster_id
+}
+
+output "eks_cluster_endpoint" {
+  description = "EKS cluster endpoint"
+  value       = module.eks.cluster_endpoint
+  sensitive   = true
+}
+
+output "eks_cluster_version" {
+  description = "EKS cluster Kubernetes version"
+  value       = module.eks.cluster_version
+}
+
+output "eks_oidc_issuer_url" {
+  description = "The URL on the EKS cluster OIDC Issuer"
+  value       = module.eks.oidc_issuer_url
+}
+
+output "eks_aws_load_balancer_controller_role_arn" {
+  description = "ARN of the AWS Load Balancer Controller IAM role"
+  value       = module.eks.aws_load_balancer_controller_role_arn
+}
+
+output "eks_karpenter_role_arn" {
+  description = "ARN of the Karpenter IAM role"
+  value       = module.eks.karpenter_role_arn
+}
+
+output "nat_gateway_public_ip" {
+  description = "Public IP of the NAT Gateway"
+  value       = module.nat_gateway.nat_gateway_public_ip
+}
