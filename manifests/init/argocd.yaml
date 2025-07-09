@@ -35,7 +35,7 @@ spec:
   source:
     repoURL: https://github.com/CLD-3rd/team2-infra
     targetRevision: HEAD
-    path: manifest/overlays/dev
+    path: manifests/overlays/dev
   destination:
     server: https://kubernetes.default.svc
     namespace: dev

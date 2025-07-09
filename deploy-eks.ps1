@@ -28,6 +28,7 @@ $files = @(
     "argocd.yaml",
     "aws-load-balancer-controller.yaml",
     "cert-manager.yaml",
+    "cloudwatch-observability.yaml",
     "external-dns.yaml",
     "fluent-bit.yaml",
     "xray-daemon.yaml",

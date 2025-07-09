@@ -1,21 +1,5 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: cert-manager
----
-apiVersion: helm.cattle.io/v1
-kind: HelmChart
-metadata:
-  name: cert-manager
-  namespace: kube-system
-spec:
-  chart: cert-manager
-  repo: https://charts.jetstack.io
-  targetNamespace: cert-manager
-  version: v1.13.3
-  set:
-    installCRDs: "true"
-    global.leaderElection.namespace: cert-manager
+# Cert-Manager는 배포 스크립트에서 직접 설치
+# https 적용을 위한 리소스임
 ---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
