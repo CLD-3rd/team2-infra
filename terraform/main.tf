@@ -147,6 +147,7 @@ module "website_bucket" {
 }
 
 # Route53 Hosted Zone
+# 호스팅사이트 네임서버 등록 필요
 module "dns" {
   source = "./modules/route53"
 
