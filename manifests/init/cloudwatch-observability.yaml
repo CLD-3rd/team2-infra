@@ -11,7 +11,7 @@ metadata:
   name: cloudwatch-agent
   namespace: amazon-cloudwatch
   annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::ACCOUNT_ID:role/CLUSTER_NAME-cloudwatch-agent
+    eks.amazonaws.com/role-arn: arn:aws:iam::418295688903:role/savemypodo-cluster-cloudwatch-agent
 ---
 apiVersion: apps/v1
 kind: DaemonSet
@@ -44,7 +44,7 @@ spec:
               "logs": {
                 "metrics_collected": {
                   "kubernetes": {
-                    "cluster_name": "CLUSTER_NAME",
+                    "savemypodo-cluster": "savemypodo-cluster",
                     "metrics_collection_interval": 60
                   }
                 },
