@@ -147,6 +147,7 @@ module "website_bucket" {
 }
 
 # Route53 Hosted Zone
+# 호스팅사이트 네임서버 등록 필요
 module "dns" {
   source = "./modules/route53"
 
@@ -230,5 +231,107 @@ module "dns_records" {
       }
     }
   ]
+}
+
+
+
+
+# Database Security Group
+module "db_security_group" {
+  source = "./modules/security-group"
+
+  name        = "${var.service_name}-db-sg"
+  description = "Security group for RDS database"
+  vpc_id      = module.vpc.vpc_id
+
+  ingress_rules = [
+    {
+      from_port   = 3306
+      to_port     = 3306
+      protocol    = "tcp"
+      cidr_blocks = ["192.168.0.0/16"]
+    }
+  ]
+
+  tags = {
+    Name        = "${var.service_name}-db-sg"
+    Environment = var.environment
+  }
+}
+
+# Cache Security Group
+module "cache_security_group" {
+  source = "./modules/security-group"
+
+  name        = "${var.service_name}-cache-sg"
+  description = "Security group for ElastiCache"
+  vpc_id      = module.vpc.vpc_id
+  # 현재는 같은 VPC면 모두 허용(eks 포함)
+  # EKS 노드의 보안 그룹만 Redis의 보안 그룹에서 허용되도록 수정필요
+  ingress_rules = [
+    {
+      from_port   = 6379
+      to_port     = 6379
+      protocol    = "tcp"
+      cidr_blocks = ["192.168.0.0/16"]
+    }
+  ]
+
+  tags = {
+    Name        = "${var.service_name}-cache-sg"
+    Environment = var.environment
+  }
+}
+
+# RDS MySQL Database
+module "rds" {
+  source = "./modules/rds"
+
+  identifier     = "${lower(var.service_name)}-mysql"
+  engine         = "mysql"
+  engine_version = "8.0"
+  instance_class = "db.m5.large"
+
+  allocated_storage = 20
+  storage_type      = "gp2"
+
+  db_name  = "savemypodo"
+  username = "admin"
+  password = var.db_password
+
+  vpc_security_group_ids = [module.db_security_group.security_group_id]
+  subnet_ids            = module.subnets.private_subnet_ids
+
+  multi_az                = true
+  backup_retention_period = 3
+  skip_final_snapshot     = true
+  deletion_protection     = false
+
+  tags = {
+    Name        = "${var.service_name}-MySQL"
+    Environment = var.environment
+  }
+}
+
+# ElastiCache Redis
+module "elasticache" {
+  source = "./modules/elasticache"
+
+  cluster_id     = "${lower(var.service_name)}-redis"
+  engine         = "redis"
+  engine_version = "7.0"
+  node_type      = "cache.m5.large"
+
+  security_group_ids = [module.cache_security_group.security_group_id]
+  subnet_ids         = module.subnets.private_subnet_ids
+
+  at_rest_encryption_enabled  = true
+  transit_encryption_enabled  = true # 백엔드에서도 tls 사용
+  snapshot_retention_limit    = 3
+
+  tags = {
+    Name        = "${var.service_name}-Redis"
+    Environment = var.environment
+  }
 }
 
