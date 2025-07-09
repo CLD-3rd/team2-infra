@@ -4,3 +4,10 @@ variable "service_name" {
   default     = "SaveMyPodo"
   
 }
+
+variable "environment" {
+  description = "Deployment environment (e.g., dev, staging, prod)"
+  type        = string
+  default     = "dev"
+  
+}
