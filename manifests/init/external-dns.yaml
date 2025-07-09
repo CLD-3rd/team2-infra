@@ -9,7 +9,7 @@ metadata:
   name: external-dns
   namespace: external-dns
   annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::418295688903:role/savemypodo-cluster-external-dns
+    eks.amazonaws.com/role-arn: arn:aws:iam::ACCOUNT_ID:role/CLUSTER_NAME-external-dns
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -67,7 +67,7 @@ spec:
         - --policy=upsert-only
         - --aws-zone-type=public
         - --registry=txt
-        - --txt-owner-id=savemypodo-cluster
+        - --txt-owner-id=CLUSTER_NAME
         env:
         - name: AWS_DEFAULT_REGION
           value: ap-northeast-2

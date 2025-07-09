@@ -174,12 +174,6 @@ resource "aws_eks_node_group" "bootstrap" {
     max_unavailable = 1
   }
 
-  taint {
-    key    = "karpenter.sh/bootstrap"
-    value  = "true"
-    effect = "NO_SCHEDULE"
-  }
-
   depends_on = [
     aws_iam_role_policy_attachment.node_policy,
     aws_iam_role_policy_attachment.cni_policy,
@@ -348,7 +342,6 @@ resource "aws_iam_role" "aws_load_balancer_controller" {
   tags = var.tags
 }
 
-
 resource "aws_iam_policy" "aws_load_balancer_controller" {
   name = "${var.cluster_name}-AWSLoadBalancerControllerIAMPolicy"
 
@@ -411,7 +404,21 @@ resource "aws_iam_policy" "aws_load_balancer_controller" {
       {
         Effect = "Allow"
         Action = [
-          "ec2:CreateSecurityGroup",
+          "ec2:AuthorizeSecurityGroupIngress",
+          "ec2:RevokeSecurityGroupIngress"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ec2:CreateSecurityGroup"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
           "ec2:CreateTags"
         ]
         Resource = "arn:aws:ec2:*:*:security-group/*"
@@ -420,7 +427,7 @@ resource "aws_iam_policy" "aws_load_balancer_controller" {
             "ec2:CreateAction" = "CreateSecurityGroup"
           }
           Null = {
-            "aws:RequestedRegion" = "false"
+            "aws:RequestTag/elbv2.k8s.aws/cluster" = "false"
           }
         }
       },
@@ -433,7 +440,7 @@ resource "aws_iam_policy" "aws_load_balancer_controller" {
         Resource = "arn:aws:ec2:*:*:security-group/*"
         Condition = {
           Null = {
-            "aws:RequestedRegion" = "false"
+            "aws:RequestTag/elbv2.k8s.aws/cluster" = "true"
             "aws:ResourceTag/elbv2.k8s.aws/cluster" = "false"
           }
         }
@@ -461,7 +468,7 @@ resource "aws_iam_policy" "aws_load_balancer_controller" {
         Resource = "*"
         Condition = {
           Null = {
-            "aws:RequestedRegion" = "false"
+            "aws:RequestTag/elbv2.k8s.aws/cluster" = "false"
           }
         }
       },
@@ -488,10 +495,23 @@ resource "aws_iam_policy" "aws_load_balancer_controller" {
         ]
         Condition = {
           Null = {
-            "aws:RequestedRegion" = "false"
+            "aws:RequestTag/elbv2.k8s.aws/cluster" = "true"
             "aws:ResourceTag/elbv2.k8s.aws/cluster" = "false"
           }
         }
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "elasticloadbalancing:AddTags",
+          "elasticloadbalancing:RemoveTags"
+        ]
+        Resource = [
+          "arn:aws:elasticloadbalancing:*:*:listener/net/*/*/*",
+          "arn:aws:elasticloadbalancing:*:*:listener/app/*/*/*",
+          "arn:aws:elasticloadbalancing:*:*:listener-rule/net/*/*/*",
+          "arn:aws:elasticloadbalancing:*:*:listener-rule/app/*/*/*"
+        ]
       },
       {
         Effect = "Allow"
@@ -542,6 +562,83 @@ resource "aws_iam_role_policy_attachment" "aws_load_balancer_controller" {
   role       = aws_iam_role.aws_load_balancer_controller.name
 }
 
+# Karpenter IRSA Role
+resource "aws_iam_role" "karpenter" {
+  name = "${var.cluster_name}-karpenter"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRoleWithWebIdentity"
+        Effect = "Allow"
+        Principal = {
+          Federated = aws_iam_openid_connect_provider.cluster_oidc.arn
+        }
+        Condition = {
+          StringEquals = {
+            "${replace(aws_iam_openid_connect_provider.cluster_oidc.url, "https://", "")}:sub" = "system:serviceaccount:karpenter:karpenter"
+            "${replace(aws_iam_openid_connect_provider.cluster_oidc.url, "https://", "")}:aud" = "sts.amazonaws.com"
+          }
+        }
+      }
+    ]
+  })
+
+  tags = var.tags
+}
+
+resource "aws_iam_policy" "karpenter" {
+  name = "${var.cluster_name}-KarpenterControllerIAMPolicy"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ssm:GetParameter",
+          "iam:PassRole",
+          "ec2:DescribeImages",
+          "ec2:RunInstances",
+          "ec2:DescribeSubnets",
+          "ec2:DescribeSecurityGroups",
+          "ec2:DescribeLaunchTemplates",
+          "ec2:DescribeInstances",
+          "ec2:DescribeInstanceTypes",
+          "ec2:DescribeInstanceTypeOfferings",
+          "ec2:DescribeAvailabilityZones",
+          "ec2:DeleteLaunchTemplate",
+          "ec2:CreateTags",
+          "ec2:CreateLaunchTemplate",
+          "ec2:CreateFleet",
+          "ec2:DescribeSpotPriceHistory",
+          "pricing:GetProducts"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ec2:TerminateInstances"
+        ]
+        Resource = "*"
+        Condition = {
+          StringEquals = {
+            "ec2:ResourceTag/karpenter.sh/cluster" = var.cluster_name
+          }
+        }
+      }
+    ]
+  })
+
+  tags = var.tags
+}
+
+resource "aws_iam_role_policy_attachment" "karpenter" {
+  policy_arn = aws_iam_policy.karpenter.arn
+  role       = aws_iam_role.karpenter.name
+}
 
 # Karpenter Node Instance Profile
 resource "aws_iam_instance_profile" "karpenter_node" {
