@@ -22,6 +22,14 @@ variable "alert_emails_raw" {
   type = string
 }
 
+variable "eks_cluster_version" {
+  description = "Kubernetes version for the EKS cluster"
+  type        = string
+  default     = "1.31"
+}
+
+
+
 locals {
   alert_emails = split(",", var.alert_emails_raw)
 }

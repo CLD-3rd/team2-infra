@@ -11,6 +11,7 @@ output "db_instance_arn" {
 output "db_instance_endpoint" {
   description = "The RDS instance endpoint"
   value       = aws_db_instance.this.endpoint
+  sensitive = true
 }
 
 output "db_instance_port" {
@@ -21,4 +22,5 @@ output "db_instance_port" {
 output "db_instance_address" {
   description = "The RDS instance hostname"
   value       = aws_db_instance.this.address
+  sensitive = true
 }

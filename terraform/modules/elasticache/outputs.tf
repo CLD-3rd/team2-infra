@@ -6,11 +6,13 @@ output "cluster_id" {
 output "cluster_address" {
   description = "The DNS name of the cache cluster without the port appended"
   value       = aws_elasticache_cluster.this.cluster_address
+  sensitive = true
 }
 
 output "configuration_endpoint" {
   description = "The configuration endpoint to allow host discovery"
   value       = aws_elasticache_cluster.this.configuration_endpoint
+  sensitive = true
 }
 
 output "cache_nodes" {

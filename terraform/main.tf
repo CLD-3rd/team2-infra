@@ -84,6 +84,20 @@ module "internet_gateway" {
   name   = "${var.service_name}-IGW"
 }
 
+# NAT Gateway 
+# Single NAT Gateway shared across multiple private subnets.
+module "nat_gateway" {
+  source = "./modules/network/nat-gateway"
+
+  name      = "${var.service_name}-NAT"
+  subnet_id = module.subnets.public_subnet_ids[0]
+
+  tags = {
+    Name        = "${var.service_name}-NAT"
+    Environment = var.environment
+  }
+}
+
 # Route Tables
 module "route_tables" {
   source = "./modules/network/route-table"
@@ -95,15 +109,24 @@ module "route_tables" {
       subnet_ids = module.subnets.public_subnet_ids
       routes = [
         {
-          cidr_block = "0.0.0.0/0"
-          gateway_id = module.internet_gateway.internet_gateway_id
+          cidr_block     = "0.0.0.0/0"
+          gateway_id     = module.internet_gateway.internet_gateway_id
+          nat_gateway_id = null
         }
       ]
+      tags = {}
     },
     {
       name       = "${var.service_name}-PrivateSubnetRouteTable"
       subnet_ids = module.subnets.private_subnet_ids
-      routes     = []
+      routes = [
+        {
+          cidr_block     = "0.0.0.0/0"
+          gateway_id     = null
+          nat_gateway_id = module.nat_gateway.nat_gateway_id
+        }
+      ]
+      tags = {}
     }
   ]
 }
@@ -236,6 +259,24 @@ module "dns_records" {
 
 
 
+# EKS Cluster
+module "eks" {
+  source = "./modules/eks"
+
+  cluster_name       = "${lower(var.service_name)}-cluster"
+  cluster_version    = var.eks_cluster_version
+  vpc_id             = module.vpc.vpc_id
+  subnet_ids         = concat(module.subnets.public_subnet_ids, module.subnets.private_subnet_ids)
+  private_subnet_ids = module.subnets.private_subnet_ids
+
+  tags = {
+    Name        = "${var.service_name}-EKS"
+    Environment = var.environment
+  }
+
+  depends_on = [module.nat_gateway]
+}
+
 # Database Security Group
 module "db_security_group" {
   source = "./modules/security-group"
@@ -246,10 +287,10 @@ module "db_security_group" {
 
   ingress_rules = [
     {
-      from_port   = 3306
-      to_port     = 3306
-      protocol    = "tcp"
-      cidr_blocks = ["192.168.0.0/16"]
+      from_port                = 3306
+      to_port                  = 3306
+      protocol                 = "tcp"
+      source_security_group_id = module.eks.node_security_group_id
     }
   ]
 
@@ -266,14 +307,13 @@ module "cache_security_group" {
   name        = "${var.service_name}-cache-sg"
   description = "Security group for ElastiCache"
   vpc_id      = module.vpc.vpc_id
-  # 현재는 같은 VPC면 모두 허용(eks 포함)
-  # EKS 노드의 보안 그룹만 Redis의 보안 그룹에서 허용되도록 수정필요
+
   ingress_rules = [
     {
-      from_port   = 6379
-      to_port     = 6379
-      protocol    = "tcp"
-      cidr_blocks = ["192.168.0.0/16"]
+      from_port                = 6379
+      to_port                  = 6379
+      protocol                 = "tcp"
+      source_security_group_id = module.eks.node_security_group_id
     }
   ]
 
