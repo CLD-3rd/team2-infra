@@ -3,11 +3,24 @@ resource "aws_cloudfront_distribution" "this" {
     domain_name = var.origin_domain_name
     origin_id   = var.origin_id
 
-    custom_origin_config {
-      http_port              = 80
-      https_port             = 443
-      origin_protocol_policy = "http-only"
-      origin_ssl_protocols   = ["TLSv1.2"]
+    # S3 OAC 구성일 때만 origin_access_control_id 사용
+    origin_access_control_id = var.use_oac ? aws_cloudfront_origin_access_control.this[0].id : null
+
+    dynamic "custom_origin_config" {
+      for_each = var.use_oac ? [] : [1]
+      content {
+        http_port              = 80
+        https_port             = 443
+        origin_protocol_policy = "http-only"
+        origin_ssl_protocols   = ["TLSv1.2"]
+      }
+    }
+
+    dynamic "s3_origin_config" {
+      for_each = var.use_oac ? [1] : []
+      content {
+        origin_access_identity = ""  # OAC 사용 시 공란
+      }
     }
   }
 
@@ -17,8 +30,8 @@ resource "aws_cloudfront_distribution" "this" {
   aliases             = var.aliases
 
   default_cache_behavior {
-    allowed_methods        = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
-    cached_methods         = ["GET", "HEAD"]
+    allowed_methods        = var.allowed_methods
+    cached_methods         = var.cached_methods
     target_origin_id       = var.origin_id
     compress               = true
     viewer_protocol_policy = "redirect-to-https"
@@ -60,4 +73,12 @@ resource "aws_cloudfront_distribution" "this" {
   }
 
   tags = var.tags
+}
+
+resource "aws_cloudfront_origin_access_control" "this" {
+  count                             = var.use_oac ? 1 : 0
+  name                              = "${var.service_name}-oac"
+  origin_access_control_origin_type = "s3"
+  signing_behavior                  = "always"
+  signing_protocol                  = "sigv4"
 }

@@ -53,13 +53,13 @@ variable "security_group_ids" {
 variable "at_rest_encryption_enabled" {
   description = "Whether to enable encryption at rest"
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "transit_encryption_enabled" {
   description = "Whether to enable encryption in transit"
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "auth_token" {

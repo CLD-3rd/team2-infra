@@ -1,4 +1,4 @@
-# EKS 클러스터 배포 스크립트
+﻿# EKS 클러스터 배포 스크립트
 param(
     [string]$ClusterName = "savemypodo-cluster",
     [string]$Region = "ap-northeast-2",
@@ -41,17 +41,17 @@ foreach ($file in $files) {
         Write-Host "업데이트됨: $file" -ForegroundColor Green
     }
 }
-
-# 3. AWS Load Balancer Controller 설치
-Write-Host "`n3. AWS Load Balancer Controller 설치 중..." -ForegroundColor Cyan
-kubectl apply -f https://github.com/kubernetes-sigs/aws-load-balancer-controller/releases/download/v2.7.2/v2_7_2_full.yaml
-kubectl apply -f aws-load-balancer-controller.yaml
-
-# 4. Cert-Manager 설치
-Write-Host "`n4. Cert-Manager 설치 중..." -ForegroundColor Cyan
+# 3. Cert-Manager 설치
+Write-Host "`n3. Cert-Manager 설치 중..." -ForegroundColor Cyan
 kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.13.3/cert-manager.yaml
 Start-Sleep -Seconds 30
 kubectl apply -f cert-manager.yaml
+
+# 4. AWS Load Balancer Controller 설치
+Write-Host "`n4. AWS Load Balancer Controller 설치 중..." -ForegroundColor Cyan
+kubectl apply -f https://github.com/kubernetes-sigs/aws-load-balancer-controller/releases/download/v2.7.2/v2_7_2_full.yaml
+kubectl apply -f aws-load-balancer-controller.yaml
+
 
 # 5. External DNS 설치
 Write-Host "`n5. External DNS 설치 중..." -ForegroundColor Cyan

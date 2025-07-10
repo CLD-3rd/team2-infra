@@ -174,12 +174,6 @@ resource "aws_eks_node_group" "bootstrap" {
     max_unavailable = 1
   }
 
-  taint {
-    key    = "karpenter.sh/bootstrap"
-    value  = "true"
-    effect = "NO_SCHEDULE"
-  }
-
   depends_on = [
     aws_iam_role_policy_attachment.node_policy,
     aws_iam_role_policy_attachment.cni_policy,
@@ -348,7 +342,6 @@ resource "aws_iam_role" "aws_load_balancer_controller" {
   tags = var.tags
 }
 
-
 resource "aws_iam_policy" "aws_load_balancer_controller" {
   name = "${var.cluster_name}-AWSLoadBalancerControllerIAMPolicy"
 
@@ -411,7 +404,21 @@ resource "aws_iam_policy" "aws_load_balancer_controller" {
       {
         Effect = "Allow"
         Action = [
-          "ec2:CreateSecurityGroup",
+          "ec2:AuthorizeSecurityGroupIngress",
+          "ec2:RevokeSecurityGroupIngress"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ec2:CreateSecurityGroup"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
           "ec2:CreateTags"
         ]
         Resource = "arn:aws:ec2:*:*:security-group/*"
@@ -420,7 +427,7 @@ resource "aws_iam_policy" "aws_load_balancer_controller" {
             "ec2:CreateAction" = "CreateSecurityGroup"
           }
           Null = {
-            "aws:RequestedRegion" = "false"
+            "aws:RequestTag/elbv2.k8s.aws/cluster" = "false"
           }
         }
       },
@@ -433,7 +440,7 @@ resource "aws_iam_policy" "aws_load_balancer_controller" {
         Resource = "arn:aws:ec2:*:*:security-group/*"
         Condition = {
           Null = {
-            "aws:RequestedRegion" = "false"
+            "aws:RequestTag/elbv2.k8s.aws/cluster" = "true"
             "aws:ResourceTag/elbv2.k8s.aws/cluster" = "false"
           }
         }
@@ -461,7 +468,7 @@ resource "aws_iam_policy" "aws_load_balancer_controller" {
         Resource = "*"
         Condition = {
           Null = {
-            "aws:RequestedRegion" = "false"
+            "aws:RequestTag/elbv2.k8s.aws/cluster" = "false"
           }
         }
       },
@@ -488,10 +495,23 @@ resource "aws_iam_policy" "aws_load_balancer_controller" {
         ]
         Condition = {
           Null = {
-            "aws:RequestedRegion" = "false"
+            "aws:RequestTag/elbv2.k8s.aws/cluster" = "true"
             "aws:ResourceTag/elbv2.k8s.aws/cluster" = "false"
           }
         }
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "elasticloadbalancing:AddTags",
+          "elasticloadbalancing:RemoveTags"
+        ]
+        Resource = [
+          "arn:aws:elasticloadbalancing:*:*:listener/net/*/*/*",
+          "arn:aws:elasticloadbalancing:*:*:listener/app/*/*/*",
+          "arn:aws:elasticloadbalancing:*:*:listener-rule/net/*/*/*",
+          "arn:aws:elasticloadbalancing:*:*:listener-rule/app/*/*/*"
+        ]
       },
       {
         Effect = "Allow"
