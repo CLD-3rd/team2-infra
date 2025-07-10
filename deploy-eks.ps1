@@ -54,7 +54,12 @@ kubectl apply -f aws-load-balancer-controller.yaml
 helm repo add eks https://aws.github.io/eks-charts
 helm repo update
 
-helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller -n kube-system --set clusterName=$ClusterName  --set serviceAccount.create=false --set serviceAccount.name=aws-load-balancer-controller
+helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller -n kube-system `
+    --set clusterName=$ClusterName `
+    --set serviceAccount.create=false `
+    --set serviceAccount.name=aws-load-balancer-controller `
+    --set region=$Region `
+    --set vpcId=$(aws eks describe-cluster --name $ClusterName --query "cluster.resourcesVpcConfig.vpcId" --output text)
 
 
 # 5. External DNS 설치
@@ -81,13 +86,12 @@ Write-Host $argoPassword -ForegroundColor White
 Write-Host "`n7. Kube-ops-view 설치 중..." -ForegroundColor Cyan
 helm repo add geek-cookbook https://geek-cookbook.github.io/charts/ --force-update
 helm repo update
-helm upgrade --install kube-ops-view geek-cookbook/kube-ops-view `
-    --version 1.2.2 `
-    --set env.TZ="Asia/Seoul" `
-    --set service.type=LoadBalancer `
-    --set ports.enabled=true `
-    --namespace kube-system `
-    --wait
+helm install kube-ops-view geek-cookbook/kube-ops-view `
+--version 1.2.2 `
+--set service.main.type=LoadBalancer `
+--set service.main.ports.http.port=80 `
+--namespace kube-system `
+--wait
 
 
 # 8. Fluent Bit 설치 (CloudWatch 로깅)
@@ -106,6 +110,11 @@ helm upgrade --install karpenter oci://public.ecr.aws/karpenter/karpenter --vers
     --set settings.aws.defaultInstanceProfile="$ClusterName-KarpenterNodeInstanceProfile" `
     --set settings.aws.interruptionQueueName="$ClusterName" `
     --wait
+
+# Karpenter Pod가 Ready 상태가 될 때까지 대기
+Write-Host "`nKarpenter 컨트롤러 Pod가 준비될 때까지 대기 중..." -ForegroundColor Yellow
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=karpenter --namespace karpenter --timeout=180s
+
 
 kubectl apply -f karpenter.yaml
 
