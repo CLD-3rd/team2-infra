@@ -24,7 +24,12 @@ variable "private_subnet_ids" {
   type        = list(string)
 }
 
-
+variable "eks_version" {
+  description = "EKS version to use for the cluster"
+  type        = string
+  default     = "1.31"
+  
+}
 
 variable "tags" {
   description = "Tags to apply to resources"
