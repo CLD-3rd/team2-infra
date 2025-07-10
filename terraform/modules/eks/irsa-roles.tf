@@ -34,8 +34,13 @@ resource "aws_iam_policy" "karpenter" {
         Effect = "Allow"
         Action = [
           "ssm:GetParameter",
-          "iam:PassRole",
+          "iam:CreateInstanceProfile",
+          "iam:TagInstanceProfile",
+          "iam:AddRoleToInstanceProfile",
+          "iam:RemoveRoleFromInstanceProfile",
+          "iam:DeleteInstanceProfile",
           "iam:GetInstanceProfile",
+          "iam:PassRole",
           "ec2:DescribeImages",
           "ec2:RunInstances",
           "ec2:DescribeSubnets",
