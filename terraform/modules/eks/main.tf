@@ -78,7 +78,7 @@ resource "aws_security_group" "cluster_sg" {
     from_port = 443
     to_port   = 443
     protocol  = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["10.22.0.0/16"]
   }
 
   egress {
@@ -165,49 +165,17 @@ resource "aws_cloudwatch_log_group" "cluster_logs" {
 }
 
 
-data "aws_ssm_parameter" "eks_ami" {
-  name = "/aws/service/eks/optimized-ami/${var.eks_version}/amazon-linux-2/recommended/image_id"
-}
 
-# Launch Template for Bootstrap Node Group
-resource "aws_launch_template" "bootstrap_lt" {
-  name_prefix   = "${var.cluster_name}-bootstrap-lt-"
-  image_id      = data.aws_ssm_parameter.eks_ami.value
-  instance_type = "t3.medium"
-
-  metadata_options {
-    http_endpoint = "enabled"
-    http_tokens   = "optional"  # <-- IMDSv1, v2 모두 허용
-  }
-
-  block_device_mappings {
-    device_name = "/dev/xvda"
-    ebs {
-      volume_size = 20
-      volume_type = "gp3"
-      delete_on_termination = true
-    }
-  }
-
-  tag_specifications {
-    resource_type = "instance"
-    tags = merge(var.tags, {
-      Name = "${var.cluster_name}-bootstrap"
-    })
-  }
-}
-
-# EKS Bootstrap Node Group
+# Bootstrap Node Group (Karpenter 설치용)
 resource "aws_eks_node_group" "bootstrap" {
   cluster_name    = aws_eks_cluster.cluster.name
   node_group_name = "${var.cluster_name}-bootstrap"
   node_role_arn   = aws_iam_role.node_role.arn
   subnet_ids      = var.private_subnet_ids
 
-  launch_template {
-    id      = aws_launch_template.bootstrap_lt.id
-    version = "$Latest"
-  }
+  capacity_type  = "ON_DEMAND"
+  instance_types = ["t3.medium"]
+  disk_size      = 20
 
   scaling_config {
     desired_size = 3
@@ -223,14 +191,12 @@ resource "aws_eks_node_group" "bootstrap" {
     aws_iam_role_policy_attachment.node_policy,
     aws_iam_role_policy_attachment.cni_policy,
     aws_iam_role_policy_attachment.registry_policy,
-    aws_iam_role_policy_attachment.ssm_managed_policy,
   ]
 
   tags = merge(var.tags, {
     Name = "${var.cluster_name}-bootstrap"
   })
 }
-
 
 
 

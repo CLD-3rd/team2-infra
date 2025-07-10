@@ -1,0 +1,88 @@
+prometheus:
+  prometheusSpec:
+    # 리소스 제한 설정
+    resources:
+      requests:
+        memory: 400Mi
+        cpu: 100m
+      limits:
+        memory: 2Gi
+        cpu: 1000m
+    
+    # 데이터 보존 기간
+    retention: 15d
+    
+    # 스토리지 설정
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp2
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+    
+    # 서비스 모니터 셀렉터 설정
+    # HelmValues에 있는것만 하지 않고 추가적으로 선택하겠다.
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    
+    # 추가 스크랩 설정
+    additionalScrapeConfigs:
+    - job_name: 'kubernetes-pods'
+      kubernetes_sd_configs:
+      - role: pod
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+
+grafana:
+  
+  # 서비스 타입 설정
+  service:
+    type: LoadBalancer
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+  
+  # 리소스 설정
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  
+  # 영구 스토리지
+  persistence:
+    enabled: true
+    storageClassName: "" # EKS의 기본 스토리지 클래스 사용
+    accessModes:
+      - ReadWriteOnce
+    size: 10Gi
+
+alertmanager:
+  # AlertManager 설정
+  config:
+    global:
+      resolve_timeout: 5m
+    route:
+      group_by: ['alertname', 'cluster', 'service']
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 12h
+      receiver: 'null'
+    receivers:
+    - name: 'null'
+    
+  service:
+    type: LoadBalancer
+
+# Node Exporter 설정
+nodeExporter:
+  enabled: true
+
+# Kube State Metrics 설정
+kubeStateMetrics:
+  enabled: true

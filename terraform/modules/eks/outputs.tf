@@ -70,10 +70,10 @@ output "cloudwatch_agent_role_arn" {
   value       = aws_iam_role.cloudwatch_agent.arn
 }
 
-output "xray_daemon_role_arn" {
-  description = "ARN of the X-Ray Daemon IAM role"
-  value       = aws_iam_role.xray_daemon.arn
-}
+# output "xray_daemon_role_arn" {
+#   description = "ARN of the X-Ray Daemon IAM role"
+#   value       = aws_iam_role.xray_daemon.arn
+# }
 
 output "external_dns_role_arn" {
   description = "ARN of the External DNS IAM role"

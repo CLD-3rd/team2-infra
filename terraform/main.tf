@@ -312,6 +312,12 @@ module "db_security_group" {
       to_port                  = 3306
       protocol                 = "tcp"
       source_security_group_id = module.eks.node_security_group_id
+    },
+    {
+      from_port                = 3306
+      to_port                  = 3306
+      protocol                 = "tcp"
+      cidr_blocks = ["10.22.0.0/16"]
     }
   ]
 
@@ -335,6 +341,12 @@ module "cache_security_group" {
       to_port                  = 6379
       protocol                 = "tcp"
       source_security_group_id = module.eks.node_security_group_id
+    },
+    {
+      from_port                = 6379
+      to_port                  = 6379
+      protocol                 = "tcp"
+      cidr_blocks = ["10.22.0.0/16"]
     }
   ]
 
@@ -500,6 +512,20 @@ module "client_vpn" {
   
   tags = {
     Name        = "${var.service_name}-ClientVPN"
+    Environment = var.environment
+  }
+}
+
+
+
+# SSM Parameter for Grafana Admin Password
+module "ssm_parameter" {
+  source = "./modules/ssm-parameter"
+
+  key_name = "/${lower(var.service_name)}/grafana/admin_password"
+  value    = var.grafana_admin_password
+  tags     = {
+    Name        = "${var.service_name}-GrafanaAdminPassword"
     Environment = var.environment
   }
 }

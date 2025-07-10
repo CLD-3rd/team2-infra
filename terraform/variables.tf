@@ -44,3 +44,9 @@ variable "vpn_root_ca_certificate_arn" {
 locals {
   alert_emails = split(",", var.alert_emails_raw)
 }
+
+variable "grafana_admin_password" {
+  description = "Grafana admin password"
+  type        = string
+  sensitive   = true
+}
