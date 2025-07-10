@@ -35,6 +35,7 @@ resource "aws_iam_policy" "karpenter" {
         Action = [
           "ssm:GetParameter",
           "iam:PassRole",
+          "iam:GetInstanceProfile",
           "ec2:DescribeImages",
           "ec2:RunInstances",
           "ec2:DescribeSubnets",
