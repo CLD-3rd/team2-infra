@@ -402,13 +402,18 @@ module "image_bucket" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid       = "AllowCloudFrontOAC"
-        Effect    = "Allow"
+        Sid    = "AllowCloudFrontOAC"
+        Effect = "Allow"
         Principal = {
-          AWS = module.image_cdn.oac_arn
+          Service = "cloudfront.amazonaws.com"
         }
-        Action    = "s3:GetObject"
-        Resource  = "arn:aws:s3:::${lower(var.service_name)}-images/*"
+        Action   = "s3:GetObject"
+        Resource = "arn:aws:s3:::${lower(var.service_name)}-images/*"
+        Condition = {
+          StringEquals = {
+            "AWS:SourceArn" = module.image_cdn.oac_arn
+          }
+        }
       }
     ]
   })
@@ -436,4 +441,56 @@ module "image_cdn" {
 
   depends_on = [module.certificate]
   
+}
+
+# Client VPN
+module "client_vpn" {
+  source = "./modules/network/client-vpn"
+
+  name                    = "${var.service_name}-client-vpn"
+  description             = "Client VPN for ${var.service_name}"
+  vpc_id                  = module.vpc.vpc_id
+  subnet_ids              = module.subnets.private_subnet_ids
+  client_cidr_block       = "10.22.0.0/16"
+  # 테라폼 실행 전에 acm 인증서 올리고 환경 변수로 설정해야 하는 변수들
+  server_certificate_arn  = var.vpn_server_certificate_arn
+  root_ca_certificate_arn = var.vpn_root_ca_certificate_arn
+  
+  # DNS 설정
+  dns_servers = ["8.8.8.8", "8.8.4.4"]
+  split_tunnel = true
+  
+  # 인증 규칙
+  authorization_rules = [
+    {
+      target_network_cidr  = module.vpc.vpc_cidr_block
+      authorize_all_groups = true
+      description          = "Allow access to VPC"
+    }
+  ]
+  
+  # 라우팅 규칙
+  routes = [
+    {
+      destination_cidr_block = module.vpc.vpc_cidr_block
+      target_vpc_subnet_id   = module.subnets.private_subnet_ids[0]
+      description            = "Route to VPC"
+    }
+  ]
+  
+  # 보안 그룹 규칙
+  security_group_ingress_rules = [
+    {
+      from_port   = 443
+      to_port     = 443
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+      description = "HTTPS access"
+    }
+  ]
+  
+  tags = {
+    Name        = "${var.service_name}-ClientVPN"
+    Environment = var.environment
+  }
 }

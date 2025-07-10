@@ -9,7 +9,7 @@ metadata:
   name: fluent-bit
   namespace: amazon-cloudwatch
   annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::ACCOUNT_ID:role/CLUSTER_NAME-fluent-bit
+    eks.amazonaws.com/role-arn: arn:aws:iam::061039804626:role/CLUSTER_NAME-fluent-bit
 ---
 apiVersion: v1
 kind: ConfigMap

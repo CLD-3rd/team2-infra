@@ -90,3 +90,19 @@ output "nat_gateway_public_ip" {
   description = "Public IP of the NAT Gateway"
   value       = module.nat_gateway.nat_gateway_public_ip
 }
+
+# Client VPN outputs
+output "client_vpn_endpoint_id" {
+  description = "ID of the Client VPN endpoint"
+  value       = module.client_vpn.client_vpn_endpoint_id
+}
+
+output "client_vpn_dns_name" {
+  description = "DNS name of the Client VPN endpoint"
+  value       = module.client_vpn.client_vpn_endpoint_dns_name
+}
+
+output "image_cdn_domain_name" {
+  description = "Domain name of the Image CDN distribution"
+  value       = module.image_cdn.distribution_domain_name
+}

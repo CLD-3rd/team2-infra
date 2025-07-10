@@ -9,7 +9,7 @@ metadata:
   name: karpenter
   namespace: karpenter
   annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::ACCOUNT_ID:role/CLUSTER_NAME-karpenter
+    eks.amazonaws.com/role-arn: arn:aws:iam::061039804626:role/CLUSTER_NAME-karpenter
 ---
 apiVersion: karpenter.sh/v1beta1
 kind: NodePool
