@@ -58,6 +58,16 @@ resource "aws_iam_role_policy_attachment" "registry_policy" {
   role       = aws_iam_role.node_role.name
 }
 
+resource "aws_iam_role_policy_attachment" "ssm_managed_policy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  role       = aws_iam_role.node_role.name
+}
+
+resource "aws_iam_instance_profile" "karpenter_instance_profile" {
+  name = "${var.cluster_name}-karpenter-instance-profile"
+  role = aws_iam_role.node_role.name
+}
+
 # EKS Cluster Security Group
 resource "aws_security_group" "cluster_sg" {
   name        = "${var.cluster_name}-cluster-sg"
@@ -357,7 +367,7 @@ resource "aws_iam_policy" "aws_load_balancer_controller" {
           "elasticloadbalancing:DescribeLoadBalancerAttributes",
           "elasticloadbalancing:DescribeListeners",
           "elasticloadbalancing:DescribeListenerCertificates",
-          "elasticloadbalancing:DescribeListenerAttributes",
+          "elasticloadbalancing:DescribeListenerAttributes", "elasticloadbalancing:DescribeListenerAttributes",
           "elasticloadbalancing:DescribeSSLPolicies",
           "elasticloadbalancing:DescribeRules",
           "elasticloadbalancing:DescribeTargetGroups",
