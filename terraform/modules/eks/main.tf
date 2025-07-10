@@ -362,7 +362,8 @@ resource "aws_iam_policy" "aws_load_balancer_controller" {
           "elasticloadbalancing:DescribeTargetGroups",
           "elasticloadbalancing:DescribeTargetGroupAttributes",
           "elasticloadbalancing:DescribeTargetHealth",
-          "elasticloadbalancing:DescribeTags"
+          "elasticloadbalancing:DescribeTags",
+          "elasticloadbalancing:AddTags"
         ]
         Resource = "*"
       },
@@ -482,12 +483,6 @@ resource "aws_iam_policy" "aws_load_balancer_controller" {
           "arn:aws:elasticloadbalancing:*:*:loadbalancer/net/*/*",
           "arn:aws:elasticloadbalancing:*:*:loadbalancer/app/*/*"
         ]
-        Condition = {
-          Null = {
-            "aws:RequestTag/elbv2.k8s.aws/cluster" = "true"
-            "aws:ResourceTag/elbv2.k8s.aws/cluster" = "false"
-          }
-        }
       },
       {
         Effect = "Allow"
