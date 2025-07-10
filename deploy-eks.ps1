@@ -82,6 +82,10 @@ Write-Host "`nArgoCD 초기 admin 비밀번호:" -ForegroundColor Cyan
 $argoPassword = kubectl get secret -n argocd argocd-initial-admin-secret -o jsonpath="{.data.password}" | ForEach-Object { [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($_)) }
 Write-Host $argoPassword -ForegroundColor White
 
+# 6. Metrics Server 설치
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+
+
 # 7. Kube-ops-view 설치
 Write-Host "`n7. Kube-ops-view 설치 중..." -ForegroundColor Cyan
 helm repo add geek-cookbook https://geek-cookbook.github.io/charts/ --force-update
@@ -89,14 +93,38 @@ helm repo update
 helm install kube-ops-view geek-cookbook/kube-ops-view `
 --version 1.2.2 `
 --set service.main.type=LoadBalancer `
---set service.main.ports.http.port=80 `
+--set service.main.ports.http.port=8080 `
 --namespace kube-system `
 --wait
 
 
 # 8. Fluent Bit 설치 (CloudWatch 로깅)
 Write-Host "`n8. Fluent Bit 설치 중..." -ForegroundColor Cyan
-kubectl apply -f fluent-bit.yaml
+
+# 네임스페이스 생성
+kubectl apply -f https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-insights/latest/k8s-deployment-manifest-templates/deployment-mode/daemonset/container-insights-monitoring/cloudwatch-namespace.yaml
+
+# 변수 설정
+$CLUSTER_NAME = "savemypodo-cluster"
+$FluentBitHttpServer = "On"
+$FluentBitHttpPort = "2020"
+$FluentBitReadFromHead = "Off"
+$FluentBitReadFromTail = "On"
+$AWS_DEFAULT_REGION = "ap-northeast-2"
+
+# ConfigMap 생성 (cluster info)
+kubectl create configmap fluent-bit-cluster-info `
+--from-literal=cluster.name=$CLUSTER_NAME `
+--from-literal=http.server=$FluentBitHttpServer `
+--from-literal=http.port=$FluentBitHttpPort `
+--from-literal=read.head=$FluentBitReadFromHead `
+--from-literal=read.tail=$FluentBitReadFromTail `
+--from-literal=logs.region=$AWS_DEFAULT_REGION `
+-n amazon-cloudwatch
+
+# Fluent Bit 구성 적용 (DaemonSet + ConfigMap 포함)
+kubectl apply -f https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-insights/latest/k8s-deployment-manifest-templates/deployment-mode/daemonset/container-insights-monitoring/fluent-bit/fluent-bit.yaml
+
 
 # 9. X-Ray 데몬 설치
 Write-Host "`n9. X-Ray 데몬 설치 중..." -ForegroundColor Cyan
