@@ -2,7 +2,8 @@
 param(
     [string]$ClusterName = "savemypodo-cluster",
     [string]$Region = "ap-northeast-2",
-    [string]$AccountId
+    [string]$AccountId,
+    [string]$Domain = "savemypodo.shop"
 )
 
 # 계정 ID 가져오기
@@ -90,10 +91,11 @@ kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/late
 Write-Host "`n7. Kube-ops-view 설치 중..." -ForegroundColor Cyan
 helm repo add geek-cookbook https://geek-cookbook.github.io/charts/ --force-update
 helm repo update
-helm install kube-ops-view geek-cookbook/kube-ops-view `
+helm upgrade --install kube-ops-view geek-cookbook/kube-ops-view `
 --version 1.2.2 `
 --set service.main.type=LoadBalancer `
 --set service.main.ports.http.port=8080 `
+--set service.main.annotations."service\.beta\.kubernetes\.io/aws-load-balancer-scheme"=internet-facing `
 --namespace kube-system `
 --wait
 
@@ -160,7 +162,7 @@ if ($argoCDLB) {
 Write-Host "`nKube-ops-view 접속 정보:" -ForegroundColor Yellow
 $kubeOpsLB = kubectl get svc kube-ops-view -n kube-system -o jsonpath="{.status.loadBalancer.ingress[0].hostname}"
 if ($kubeOpsLB) {
-    Write-Host "URL: http://$kubeOpsLB" -ForegroundColor White
+    Write-Host "URL: http://$kubeOpsLB:8080" -ForegroundColor White
 }
 
 Write-Host "`n=== EKS 클러스터 배포 완료 ===" -ForegroundColor Green
