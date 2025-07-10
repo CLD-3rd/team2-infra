@@ -137,8 +137,8 @@ Write-Host "`n10. Karpenter 설치 중..." -ForegroundColor Cyan
 helm upgrade --install karpenter oci://public.ecr.aws/karpenter/karpenter --version v0.32.1 `
     --namespace karpenter --create-namespace `
     --set settings.aws.clusterName=$ClusterName `
-    --set settings.aws.defaultInstanceProfile="$ClusterName-KarpenterNodeInstanceProfile" `
     --set settings.aws.interruptionQueueName="$ClusterName" `
+    --set settings.aws.defaultInstanceProfile="$ClusterName-karpenter-instance-profile" `
     --wait
 
 # Karpenter Pod가 Ready 상태가 될 때까지 대기

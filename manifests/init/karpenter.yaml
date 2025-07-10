@@ -50,7 +50,7 @@ metadata:
   name: default
 spec:
   amiFamily: AL2
-  role: arn:aws:iam::061039804626:role/savemypodo-cluster-node-role
+  # instanceProfile: savemypodo-cluster-karpenter-instance-profile
   subnetSelectorTerms:
     - tags:
         karpenter.sh/discovery: savemypodo-cluster

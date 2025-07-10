@@ -51,6 +51,7 @@ resource "aws_iam_policy" "karpenter" {
           "ec2:DescribeInstanceTypeOfferings",
           "ec2:DescribeAvailabilityZones",
           "ec2:DeleteLaunchTemplate",
+          "ec2:GetInstanceTypesFromInstanceRequirements",
           "ec2:CreateTags",
           "ec2:CreateLaunchTemplate",
           "ec2:CreateFleet",
