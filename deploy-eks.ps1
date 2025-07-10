@@ -252,6 +252,11 @@ if ($resp.StatusCode -eq 200) {
 # # Pod 내부에서 influxdb CLI로 k6 데이터베이스 생성
 # kubectl exec -n monitoring $podName -- influx -execute "CREATE DATABASE k6"
 
+# Sealed Secrets Controller 설치
+Write-Host "`n=== Sealed Secrets Controller 설치 ===" -ForegroundColor Cyan
+kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/latest/download/controller.yaml
+
+
 # 11. 서비스 URL 확인
 Write-Host "`n=== 서비스 접속 정보 ===" -ForegroundColor Green
 

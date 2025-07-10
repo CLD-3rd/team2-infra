@@ -212,6 +212,22 @@ module "certificate" {
   }
 }
 
+module "certificate_vpc" {
+  source = "./modules/acm"
+
+  domain_name               = "api.${local.domain_name}"
+  zone_id                   = module.dns.zone_id
+
+  tags = {
+    Name        = "API Certificate"
+    Environment = var.environment
+  }
+
+  providers = {
+    aws = aws
+  }
+}
+
 # CloudFront Distribution
 module "cdn" {
   source = "./modules/cloudfront"

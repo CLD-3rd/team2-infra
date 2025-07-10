@@ -1,0 +1,10 @@
+resources:
+- savemypodo-app
+
+namespace: dev
+
+# configMapGenerator
+configMapGenerator:
+- name: env-vars	# base에 지정된 configMap의 이름
+  envs:
+    - dev.env		# dev.env 파일 내용 바탕 configMap 생성
