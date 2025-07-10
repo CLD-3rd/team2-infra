@@ -49,8 +49,12 @@ kubectl apply -f cert-manager.yaml
 
 # 4. AWS Load Balancer Controller 설치
 Write-Host "`n4. AWS Load Balancer Controller 설치 중..." -ForegroundColor Cyan
-kubectl apply -f https://github.com/kubernetes-sigs/aws-load-balancer-controller/releases/download/v2.7.2/v2_7_2_full.yaml
-kubectl apply -f aws-load-balancer-controller.yaml
+kubectl apply -f aws-load-balancer-controller.yaml 
+
+helm repo add eks https://aws.github.io/eks-charts
+helm repo update
+
+helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller -n kube-system --set clusterName=$ClusterName  --set serviceAccount.create=false --set serviceAccount.name=aws-load-balancer-controller
 
 
 # 5. External DNS 설치
@@ -81,6 +85,7 @@ helm upgrade --install kube-ops-view geek-cookbook/kube-ops-view `
     --version 1.2.2 `
     --set env.TZ="Asia/Seoul" `
     --set service.type=LoadBalancer `
+    --set ports.enabled=true `
     --namespace kube-system `
     --wait
 

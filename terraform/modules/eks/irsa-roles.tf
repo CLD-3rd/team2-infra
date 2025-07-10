@@ -64,12 +64,20 @@ resource "aws_iam_policy" "karpenter" {
             "ec2:ResourceTag/karpenter.sh/cluster" = var.cluster_name
           }
         }
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "eks:DescribeCluster"
+        ]
+        Resource = "arn:aws:eks:ap-northeast-2:061039804626:cluster/${var.cluster_name}"
       }
     ]
   })
 
   tags = var.tags
 }
+
 
 resource "aws_iam_role_policy_attachment" "karpenter" {
   policy_arn = aws_iam_policy.karpenter.arn
