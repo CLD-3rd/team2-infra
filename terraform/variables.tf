@@ -28,7 +28,18 @@ variable "eks_cluster_version" {
   default     = "1.31"
 }
 
+# 테라폼 실행 전에 acm 인증서 올리고 환경 변수로 설정해야 하는 변수들
+variable "vpn_server_certificate_arn" {
+  description = "ARN of the server certificate for Client VPN"
+  type        = string
+}
 
+variable "vpn_root_ca_certificate_arn" {
+  description = "ARN of the root CA certificate for Client VPN"
+  type        = string
+  default     = null
+  
+}
 
 locals {
   alert_emails = split(",", var.alert_emails_raw)

@@ -9,7 +9,7 @@ metadata:
   name: xray-daemon
   namespace: aws-xray
   annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::ACCOUNT_ID:role/CLUSTER_NAME-xray-daemon
+    eks.amazonaws.com/role-arn: arn:aws:iam::061039804626:role/CLUSTER_NAME-xray-daemon
 ---
 apiVersion: apps/v1
 kind: DaemonSet
