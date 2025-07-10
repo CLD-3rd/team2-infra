@@ -9,7 +9,7 @@ metadata:
   name: fluent-bit
   namespace: amazon-cloudwatch
   annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::061039804626:role/CLUSTER_NAME-fluent-bit
+    eks.amazonaws.com/role-arn: arn:aws:iam::061039804626:role/savemypodo-cluster-fluent-bit
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -67,7 +67,7 @@ data:
         Name                cloudwatch_logs
         Match               application.*
         region              ap-northeast-2
-        log_group_name      /aws/containerinsights/CLUSTER_NAME/application
+        log_group_name      /aws/containerinsights/savemypodo-cluster/application
         log_stream_prefix   ${hostname}-
         auto_create_group   true
         extra_user_agent    container-insights
@@ -116,7 +116,7 @@ data:
         Name                cloudwatch_logs
         Match               dataplane.*
         region              ap-northeast-2
-        log_group_name      /aws/containerinsights/CLUSTER_NAME/dataplane
+        log_group_name      /aws/containerinsights/savemypodo-cluster/dataplane
         log_stream_prefix   ${hostname}-
         auto_create_group   true
         extra_user_agent    container-insights
@@ -156,7 +156,7 @@ data:
         Name                cloudwatch_logs
         Match               host.*
         region              ap-northeast-2
-        log_group_name      /aws/containerinsights/CLUSTER_NAME/host
+        log_group_name      /aws/containerinsights/savemypodo-cluster/host
         log_stream_prefix   ${hostname}-
         auto_create_group   true
         extra_user_agent    container-insights
@@ -248,8 +248,8 @@ spec:
         env:
         - name: AWS_REGION
           value: ap-northeast-2
-        - name: CLUSTER_NAME
-          value: CLUSTER_NAME
+        - name: savemypodo-cluster
+          value: savemypodo-cluster
         - name: HTTP_SERVER
           value: "On"
         - name: HTTP_PORT

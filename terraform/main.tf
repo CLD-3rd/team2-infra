@@ -57,21 +57,30 @@ module "subnets" {
       cidr_block        = "192.168.11.0/24"
       availability_zone = "ap-northeast-2a"
       public            = false
-      tags              = { "kubernetes.io/role/internal-elb" = "1" }
+      tags              = { 
+        "kubernetes.io/role/internal-elb" = "1"
+        "karpenter.sh/discovery" = "${lower(var.service_name)}-cluster"
+      }
     },
     {
       name              = "${var.service_name}-PrivateSubnet2"
       cidr_block        = "192.168.12.0/24"
       availability_zone = "ap-northeast-2b"
       public            = false
-      tags              = { "kubernetes.io/role/internal-elb" = "1" }
+      tags              = { 
+        "kubernetes.io/role/internal-elb" = "1"
+        "karpenter.sh/discovery" = "${lower(var.service_name)}-cluster"
+      }
     },
     {
       name              = "${var.service_name}-PrivateSubnet3"
       cidr_block        = "192.168.13.0/24"
       availability_zone = "ap-northeast-2c"
       public            = false
-      tags              = { "kubernetes.io/role/internal-elb" = "1" }
+      tags              = { 
+        "kubernetes.io/role/internal-elb" = "1"
+        "karpenter.sh/discovery" = "${lower(var.service_name)}-cluster"
+      }
     }
   ]
 }
