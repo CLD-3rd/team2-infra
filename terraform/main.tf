@@ -333,7 +333,7 @@ module "db_security_group" {
       from_port                = 3306
       to_port                  = 3306
       protocol                 = "tcp"
-      cidr_blocks = ["10.22.0.0/16"]
+      cidr_blocks = ["10.22.0.0/16","192.168.0.0/16"]
     }
   ]
 
@@ -362,7 +362,7 @@ module "cache_security_group" {
       from_port                = 6379
       to_port                  = 6379
       protocol                 = "tcp"
-      cidr_blocks = ["10.22.0.0/16"]
+      cidr_blocks = ["10.22.0.0/16","192.168.0.0/16"]
     }
   ]
 
