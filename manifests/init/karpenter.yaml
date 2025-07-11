@@ -1,15 +1,15 @@
-# apiVersion: v1
-# kind: Namespace
-# metadata:
-#   name: karpenter
-# ---
-# apiVersion: v1
-# kind: ServiceAccount
-# metadata:
-#   name: karpenter
-#   namespace: karpenter
-#   annotations:
-#     eks.amazonaws.com/role-arn: arn:aws:iam::061039804626:role/savemypodo-cluster-karpenter
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: karpenter
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: karpenter
+  namespace: karpenter
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::061039804626:role/savemypodo-cluster-karpenter
 ---
 apiVersion: karpenter.sh/v1
 kind: NodePool
@@ -19,7 +19,7 @@ spec:
   template:
     metadata:
       labels:
-        karpenter.sh/cluster: savemypodo-cluster
+        savemypodo.com/cluster: savemypodo-cluster
     spec:
       requirements:
         - key: kubernetes.io/arch
@@ -61,7 +61,3 @@ spec:
   securityGroupSelectorTerms:
     - tags:
         karpenter.sh/discovery: savemypodo-cluster
-  userData: |
-    #!/bin/bash
-    /etc/eks/bootstrap.sh savemypodo-cluster
-    dnf install -y links tree jq tcpdump sysstat htop iotop
