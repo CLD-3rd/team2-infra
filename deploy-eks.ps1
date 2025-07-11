@@ -3,7 +3,9 @@ param(
     [string]$ClusterName = "savemypodo-cluster",
     [string]$Region = "ap-northeast-2",
     [string]$AccountId,
-    [string]$Domain = "savemypodo.shop"
+    [string]$Domain = "savemypodo.shop",
+    [string]$NodegroupName = "savemypodo-cluster-bootstrap",
+    [string]$ServiceName = "savemypodo"
 )
 
 # 계정 ID 가져오기
@@ -67,6 +69,12 @@ helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-contro
 Write-Host "`n5. External DNS 설치 중..." -ForegroundColor Cyan
 kubectl apply -f external-dns.yaml
 
+Write-Host "External DNS 준비 대기 중..." -ForegroundColor Yellow
+kubectl wait deployment external-dns `
+    --namespace=your-namespace `
+    --for=condition=Available `
+    --timeout=120s
+
 # 6. ArgoCD 설치
 Write-Host "`n6. ArgoCD 설치 중..." -ForegroundColor Cyan
 kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
@@ -98,7 +106,8 @@ helm upgrade --install kube-ops-view geek-cookbook/kube-ops-view `
 --set service.main.annotations."service\.beta\.kubernetes\.io/aws-load-balancer-scheme"=internet-facing `
 --namespace kube-system `
 --wait
-
+kubectl annotate service kube-ops-view -n kube-system "external-dns.alpha.kubernetes.io/hostname=kubeopsview.$Domain"
+Write-Host "Kube Ops View URL = http://kubeopsview.$MyDomain:8080"
 
 # 8. Fluent Bit 설치 (CloudWatch 로깅)
 Write-Host "`n8. Fluent Bit 설치 중..." -ForegroundColor Cyan
@@ -107,7 +116,7 @@ Write-Host "`n8. Fluent Bit 설치 중..." -ForegroundColor Cyan
 kubectl apply -f https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-insights/latest/k8s-deployment-manifest-templates/deployment-mode/daemonset/container-insights-monitoring/cloudwatch-namespace.yaml
 
 # 변수 설정
-$CLUSTER_NAME = "savemypodo-cluster"
+$CLUSTER_NAME = $ClusterName
 $FluentBitHttpServer = "On"
 $FluentBitHttpPort = "2020"
 $FluentBitReadFromHead = "Off"
@@ -128,25 +137,125 @@ kubectl create configmap fluent-bit-cluster-info `
 kubectl apply -f https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-insights/latest/k8s-deployment-manifest-templates/deployment-mode/daemonset/container-insights-monitoring/fluent-bit/fluent-bit.yaml
 
 
-# 9. X-Ray 데몬 설치
-Write-Host "`n9. X-Ray 데몬 설치 중..." -ForegroundColor Cyan
-kubectl apply -f xray-daemon.yaml
+# # 9. X-Ray 데몬 설치 (현재 필요하지 않음)
+# Write-Host "`n9. X-Ray 데몬 설치 중..." -ForegroundColor Cyan
+# kubectl apply -f xray-daemon.yaml
 
 # 10. Karpenter 설치
 Write-Host "`n10. Karpenter 설치 중..." -ForegroundColor Cyan
-helm upgrade --install karpenter oci://public.ecr.aws/karpenter/karpenter --version v0.32.1 `
+$KarpenterVersion = "v1.5.2"
+
+helm upgrade --install karpenter oci://public.ecr.aws/karpenter/karpenter --version $KarpenterVersion `
     --namespace karpenter --create-namespace `
-    --set settings.aws.clusterName=$ClusterName `
-    --set settings.aws.interruptionQueueName="$ClusterName" `
-    --set settings.aws.defaultInstanceProfile="$ClusterName-karpenter-instance-profile" `
-    --wait
+    --set "settings.aws.clusterName=$ClusterName" `
+    --set "serviceAccount.annotations.eks\.amazonaws\.com/role-arn=arn:aws:iam::${AccountId}:role/${ClusterName}-karpenter" `
+    --set "settings.interruptionQueue=$ClusterName" `
+    --set controller.resources.requests.cpu=1 `
+    --set controller.resources.requests.memory=1Gi `
+    --set controller.resources.limits.cpu=1 `
+    --set controller.resources.limits.memory=1Gi `
+    --wait > karpenter-patched.yaml
+
+# dnsPolicy 수정
+$filePath = "karpenter-patched.yaml"
+$content = Get-Content -Path $filePath
+$content = $content -replace 'dnsPolicy: ClusterFirst', 'dnsPolicy: Default'
+Set-Content -Path $filePath -Value $content
+Select-String -Path $filePath -Pattern 'dnsPolicy'
 
 # Karpenter Pod가 Ready 상태가 될 때까지 대기
 Write-Host "`nKarpenter 컨트롤러 Pod가 준비될 때까지 대기 중..." -ForegroundColor Yellow
 kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=karpenter --namespace karpenter --timeout=180s
 
+# karpenter CRD 등록
+kubectl create -f `
+    "https://raw.githubusercontent.com/aws/karpenter-provider-aws/${KarpenterVersion}/pkg/apis/crds/karpenter.sh_nodepools.yaml"
+kubectl create -f `
+    "https://raw.githubusercontent.com/aws/karpenter-provider-aws/${KarpenterVersion}/pkg/apis/crds/karpenter.k8s.aws_ec2nodeclasses.yaml"
+kubectl create -f `
+    "https://raw.githubusercontent.com/aws/karpenter-provider-aws/${KarpenterVersion}/pkg/apis/crds/karpenter.sh_nodeclaims.yaml"
 
+Write-Host "`nCRD가 준비될 때까지 대기 중..." -ForegroundColor Yellow
+kubectl wait --for=condition=Established crd/ec2nodeclasses.karpenter.k8s.aws --timeout=60s
+kubectl wait --for=condition=Established crd/nodeclaims.karpenter.sh --timeout=60s
+kubectl wait --for=condition=Established crd/nodepools.karpenter.sh --timeout=60s
+
+kubectl apply -f karpenter-patched.yaml
 kubectl apply -f karpenter.yaml
+
+
+# prometheus, grafana 설치
+# kubectl get storageclass으로 EKS에서 제공하는 스토리지 클래스 확인 (gp2인지 gp3인지 확인)
+# => 일단 스토리지 클래스는 기본 클래스로 설정해뒀음
+Write-Host "`n=== Prometheus 및 Grafana 설치 ===" -ForegroundColor Cyan
+$GrafanaPw=$(aws ssm get-parameter --name "/$ServiceName/grafana/admin_password" --with-decryption --query Parameter.Value --output text)
+
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+
+kubectl create namespace monitoring
+
+helm upgrade --install prometheus-stack prometheus-community/kube-prometheus-stack `
+    -n monitoring `
+    -f prometheus-stack-values.yaml `
+    --set grafana.adminPassword="$GrafanaPw"
+
+# 에러 발생 시 아래 명령어로 기존 리소스 삭제 후 재설치
+# kubectl delete statefulset prometheus-prometheus-stack-kube-prom-prometheus -n monitoring
+# kubectl delete pvc prometheus-prometheus-stack-kube-prom-prometheus-db-prometheus-prometheus-stack-kube-prom-prometheus-0 -n monitoring
+# helm upgrade --install prometheus-stack prometheus-community/kube-prometheus-stack `
+#     -n monitoring `
+#     -f prometheus-stack-values.yaml `
+#     --set grafana.adminPassword="$GrafanaPw"
+
+# influxdb 설치
+Write-Host "`n=== InfluxDB 설치 ===" -ForegroundColor Cyan
+helm repo add influxdata https://helm.influxdata.com/
+helm repo update
+helm upgrade --install influxdb influxdata/influxdb `
+    -n monitoring `
+    # --set persistence.storageClass=gp2 `
+    --set persistence.size=10Gi `
+    --set service.type=LoadBalancer `
+    --set service.port=8086 `
+    --set service.annotations."external-dns\.alpha\.kubernetes\.io/hostname"="influx.$DomainName" `
+    --set service.annotations."service\.beta\.kubernetes\.io/aws-load-balancer-scheme"=internet-facing
+
+# 외부에서 접속 가능한 LoadBalancer 주소 기다리기
+Write-Host "LoadBalancer 주소 할당 대기 중..."
+$influxdbIp = ""
+do {
+    Start-Sleep -Seconds 5
+    $influxdbIp = kubectl get svc influxdb -n monitoring -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
+} while ($influxdbIp -eq "")
+
+Write-Host "접속 주소: $influxdbIp"
+
+# DB 생성 (influx CLI 사용 안하는 버전)
+Write-Host "InfluxDB에 접속해서 k6 데이터베이스 생성 중..."
+$createDbCmd = "CREATE DATABASE k6"
+$resp = Invoke-WebRequest -Uri "http://$influxdbIp:8086/query" `
+    -Method POST `
+    -Body @{q=$createDbCmd} `
+    -ContentType "application/x-www-form-urlencoded"
+
+if ($resp.StatusCode -eq 200) {
+    Write-Host "'k6' 데이터베이스 생성 완료"
+} else {
+    Write-Host "데이터베이스 생성 실패. 응답 코드: $($resp.StatusCode)"
+}
+
+# DB 생성 (influx CLI 사용하는 버전)
+# monitoring 네임스페이스에서 influxdb Pod 이름 자동 조회
+# $podName = kubectl get pods -n monitoring -l app.kubernetes.io/name=influxdb -o jsonpath='{.items[0].metadata.name}'
+# Write-Host "InfluxDB Pod 이름: $podName"
+# # Pod 내부에서 influxdb CLI로 k6 데이터베이스 생성
+# kubectl exec -n monitoring $podName -- influx -execute "CREATE DATABASE k6"
+
+# Sealed Secrets Controller 설치
+Write-Host "`n=== Sealed Secrets Controller 설치 ===" -ForegroundColor Cyan
+kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/latest/download/controller.yaml
+
 
 # 11. 서비스 URL 확인
 Write-Host "`n=== 서비스 접속 정보 ===" -ForegroundColor Green
@@ -171,3 +280,4 @@ Write-Host "kubectl get nodes" -ForegroundColor White
 Write-Host "kubectl get pods --all-namespaces" -ForegroundColor White
 Write-Host "kubectl logs -n amazon-cloudwatch -l k8s-app=fluent-bit" -ForegroundColor White
 Write-Host "kubectl logs -n external-dns -l app=external-dns" -ForegroundColor White
+Write-Host "kubectl get pods,svc -n monitoring" -ForegroundColor White

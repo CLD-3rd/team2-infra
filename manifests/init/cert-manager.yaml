@@ -1,5 +1,5 @@
-# Cert-Manager 배포 ?�크립트?�서 직접 ?�치
-# https ?�용???�한 리소?�임
+# Cert-Manager는 배포용 스크립트로 설치
+# https 인증서 발급용 리소스임
 ---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer

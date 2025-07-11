@@ -1,0 +1,5 @@
+resources:
+- savemypodo-app
+
+namespace: dev
+

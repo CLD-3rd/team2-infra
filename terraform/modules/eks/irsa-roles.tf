@@ -178,35 +178,35 @@ resource "aws_iam_role_policy_attachment" "fluent_bit" {
 }
 
 # X-Ray Daemon IRSA Role
-resource "aws_iam_role" "xray_daemon" {
-  name = "${var.cluster_name}-xray-daemon"
+# resource "aws_iam_role" "xray_daemon" {
+#   name = "${var.cluster_name}-xray-daemon"
 
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRoleWithWebIdentity"
-        Effect = "Allow"
-        Principal = {
-          Federated = aws_iam_openid_connect_provider.cluster_oidc.arn
-        }
-        Condition = {
-          StringEquals = {
-            "${replace(aws_iam_openid_connect_provider.cluster_oidc.url, "https://", "")}:sub" = "system:serviceaccount:aws-xray:xray-daemon"
-            "${replace(aws_iam_openid_connect_provider.cluster_oidc.url, "https://", "")}:aud" = "sts.amazonaws.com"
-          }
-        }
-      }
-    ]
-  })
+#   assume_role_policy = jsonencode({
+#     Version = "2012-10-17"
+#     Statement = [
+#       {
+#         Action = "sts:AssumeRoleWithWebIdentity"
+#         Effect = "Allow"
+#         Principal = {
+#           Federated = aws_iam_openid_connect_provider.cluster_oidc.arn
+#         }
+#         Condition = {
+#           StringEquals = {
+#             "${replace(aws_iam_openid_connect_provider.cluster_oidc.url, "https://", "")}:sub" = "system:serviceaccount:aws-xray:xray-daemon"
+#             "${replace(aws_iam_openid_connect_provider.cluster_oidc.url, "https://", "")}:aud" = "sts.amazonaws.com"
+#           }
+#         }
+#       }
+#     ]
+#   })
 
-  tags = var.tags
-}
+#   tags = var.tags
+# }
 
-resource "aws_iam_role_policy_attachment" "xray_daemon" {
-  policy_arn = "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"
-  role       = aws_iam_role.xray_daemon.name
-}
+# resource "aws_iam_role_policy_attachment" "xray_daemon" {
+#   policy_arn = "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"
+#   role       = aws_iam_role.xray_daemon.name
+# }
 
 # External DNS IRSA Role
 resource "aws_iam_role" "external_dns" {
