@@ -187,7 +187,6 @@ kubectl apply -f karpenter.yaml
 
 # prometheus, grafana 설치
 # kubectl get storageclass으로 EKS에서 제공하는 스토리지 클래스 확인 (gp2로 확인됨)
-# => 일단 스토리지 클래스는 기본 클래스로 설정해뒀음
 Write-Host "`n=== Prometheus 및 Grafana 설치 ===" -ForegroundColor Cyan
 $GrafanaPw=$(aws ssm get-parameter --name "/$ServiceName/grafana/admin_password" --with-decryption --query Parameter.Value --output text)
 
@@ -219,8 +218,8 @@ helm upgrade --install influxdb influxdata/influxdb `
     --set service.type=LoadBalancer `
     --set service.port=8086 `
     --set service.annotations."external-dns\.alpha\.kubernetes\.io/hostname"="influx.$DomainName" `
-    --set service.annotations."service\.beta\.kubernetes\.io/aws-load-balancer-scheme"=internet-facing
-    # --set persistence.storageClass=gp2
+    --set service.annotations."service\.beta\.kubernetes\.io/aws-load-balancer-scheme"=internet-facing `
+    --set persistence.storageClass=gp2
 
 # 외부에서 접속 가능한 LoadBalancer 주소 기다리기
 Write-Host "LoadBalancer 주소 할당 대기 중..."

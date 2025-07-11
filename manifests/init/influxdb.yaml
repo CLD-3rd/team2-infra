@@ -1,0 +1,5 @@
+persistence:
+  enabled: true
+  storageClass: gp2   # 주석 제거하고 gp2로 설정
+  size: 10Gi
+  accessMode: ReadWriteOnce
