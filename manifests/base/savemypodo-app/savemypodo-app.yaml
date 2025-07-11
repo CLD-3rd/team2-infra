@@ -60,20 +60,20 @@ spec:
     spec:
       containers:
       - name: savemypodo-app-container
-        image: cjsqudwns/save-my-podo:latest
+        image: cjsqudwns/savemypodo-be:latest
         ports:
         - protocol: TCP
           containerPort: 8080
-        env:
-        - name: SPRING_DATASOURCE_URL
-          value: jdbc:mysql://your-rds-endpoint.rds.amazonaws.com:3306/savemypodo
-        - name: SPRING_DATASOURCE_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: rds-secret
-              key: MYSQL_USER
-        - name: SPRING_DATASOURCE_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: rds-secret
-              key: MYSQL_PASSWORD
+        # env:
+        # - name: SPRING_DATASOURCE_URL
+        #   value: jdbc:mysql://savemypodo-mysql.c3qme6c6e7fj.ap-northeast-2.rds.amazonaws.com:3306/savemypodo
+        # - name: SPRING_DATASOURCE_USERNAME
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: rds-secret
+        #       key: MYSQL_USER
+        # - name: SPRING_DATASOURCE_PASSWORD
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: rds-secret
+        #       key: MYSQL_PASSWORD
