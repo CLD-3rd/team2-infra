@@ -448,7 +448,7 @@ module "image_bucket" {
         Resource = "arn:aws:s3:::${lower(var.service_name)}-images/*"
         Condition = {
           StringEquals = {
-            "AWS:SourceArn" = module.image_cdn.oac_arn
+            "AWS:SourceArn" = module.image_cdn.distribution_arn
           }
         }
       }
