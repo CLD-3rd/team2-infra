@@ -143,18 +143,18 @@ kubectl apply -f https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch
 
 # 10. Karpenter 설치
 Write-Host "`n10. Karpenter 설치 중..." -ForegroundColor Cyan
-$KarpenterVersion = "v1.5.2"
+$KarpenterVersion = "1.5.2"
+kubectl create namespace karpenter
 
-helm upgrade --install karpenter oci://public.ecr.aws/karpenter/karpenter --version $KarpenterVersion `
+helm template karpenter oci://public.ecr.aws/karpenter/karpenter --version $KarpenterVersion `
     --namespace karpenter --create-namespace `
-    --set "settings.aws.clusterName=$ClusterName" `
+    --set settings.clusterName=$ClusterName `
     --set "serviceAccount.annotations.eks\.amazonaws\.com/role-arn=arn:aws:iam::${AccountId}:role/${ClusterName}-karpenter" `
-    --set "settings.interruptionQueue=$ClusterName" `
+    --set settings.interruptionQueue=$ClusterName `
     --set controller.resources.requests.cpu=1 `
     --set controller.resources.requests.memory=1Gi `
     --set controller.resources.limits.cpu=1 `
-    --set controller.resources.limits.memory=1Gi `
-    --wait > karpenter-patched.yaml
+    --set controller.resources.limits.memory=1Gi > karpenter-patched.yaml
 
 # dnsPolicy 수정
 $filePath = "karpenter-patched.yaml"
@@ -163,17 +163,13 @@ $content = $content -replace 'dnsPolicy: ClusterFirst', 'dnsPolicy: Default'
 Set-Content -Path $filePath -Value $content
 Select-String -Path $filePath -Pattern 'dnsPolicy'
 
-# Karpenter Pod가 Ready 상태가 될 때까지 대기
-Write-Host "`nKarpenter 컨트롤러 Pod가 준비될 때까지 대기 중..." -ForegroundColor Yellow
-kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=karpenter --namespace karpenter --timeout=180s
-
 # karpenter CRD 등록
-kubectl create -f `
-    "https://raw.githubusercontent.com/aws/karpenter-provider-aws/${KarpenterVersion}/pkg/apis/crds/karpenter.sh_nodepools.yaml"
-kubectl create -f `
-    "https://raw.githubusercontent.com/aws/karpenter-provider-aws/${KarpenterVersion}/pkg/apis/crds/karpenter.k8s.aws_ec2nodeclasses.yaml"
-kubectl create -f `
-    "https://raw.githubusercontent.com/aws/karpenter-provider-aws/${KarpenterVersion}/pkg/apis/crds/karpenter.sh_nodeclaims.yaml"
+kubectl apply -f `
+    "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v${KarpenterVersion}/pkg/apis/crds/karpenter.sh_nodepools.yaml"
+kubectl apply -f `
+    "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v${KarpenterVersion}/pkg/apis/crds/karpenter.k8s.aws_ec2nodeclasses.yaml"
+kubectl apply -f `
+    "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v${KarpenterVersion}/pkg/apis/crds/karpenter.sh_nodeclaims.yaml"
 
 Write-Host "`nCRD가 준비될 때까지 대기 중..." -ForegroundColor Yellow
 kubectl wait --for=condition=Established crd/ec2nodeclasses.karpenter.k8s.aws --timeout=60s
@@ -181,6 +177,11 @@ kubectl wait --for=condition=Established crd/nodeclaims.karpenter.sh --timeout=6
 kubectl wait --for=condition=Established crd/nodepools.karpenter.sh --timeout=60s
 
 kubectl apply -f karpenter-patched.yaml
+
+# Karpenter Pod가 Ready 상태가 될 때까지 대기
+Write-Host "`nKarpenter 컨트롤러 Pod가 준비될 때까지 대기 중..." -ForegroundColor Yellow
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=karpenter --namespace karpenter --timeout=180s
+
 kubectl apply -f karpenter.yaml
 
 

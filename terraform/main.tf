@@ -133,11 +133,6 @@ module "route_tables" {
           cidr_block     = "0.0.0.0/0"
           gateway_id     = null
           nat_gateway_id = module.nat_gateway.nat_gateway_id
-        },
-        {
-          cidr_block     = "10.22.0.0/16" # VPN 클라이언트 CIDR
-          gateway_id     = null
-          nat_gateway_id = null
         }
       ]
       tags = {}
@@ -548,5 +543,14 @@ module "ssm_parameter" {
   tags     = {
     Name        = "${var.service_name}-GrafanaAdminPassword"
     Environment = var.environment
+  }
+}
+
+resource "aws_sqs_queue" "karpenter_interruption_queue" {
+  name = "${lower(var.service_name)}-cluster"
+
+  tags = {
+    Environment = var.environment
+    Name        = "${lower(var.service_name)}-cluster"
   }
 }
