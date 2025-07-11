@@ -71,7 +71,7 @@ kubectl apply -f external-dns.yaml
 
 Write-Host "External DNS 준비 대기 중..." -ForegroundColor Yellow
 kubectl wait deployment external-dns `
-    --namespace=your-namespace `
+    --namespace=external-dns `
     --for=condition=Available `
     --timeout=120s
 
@@ -185,7 +185,7 @@ kubectl apply -f karpenter.yaml
 
 
 # prometheus, grafana 설치
-# kubectl get storageclass으로 EKS에서 제공하는 스토리지 클래스 확인 (gp2인지 gp3인지 확인)
+# kubectl get storageclass으로 EKS에서 제공하는 스토리지 클래스 확인 (gp2로 확인됨)
 # => 일단 스토리지 클래스는 기본 클래스로 설정해뒀음
 Write-Host "`n=== Prometheus 및 Grafana 설치 ===" -ForegroundColor Cyan
 $GrafanaPw=$(aws ssm get-parameter --name "/$ServiceName/grafana/admin_password" --with-decryption --query Parameter.Value --output text)
@@ -214,12 +214,12 @@ helm repo add influxdata https://helm.influxdata.com/
 helm repo update
 helm upgrade --install influxdb influxdata/influxdb `
     -n monitoring `
-    # --set persistence.storageClass=gp2 `
     --set persistence.size=10Gi `
     --set service.type=LoadBalancer `
     --set service.port=8086 `
     --set service.annotations."external-dns\.alpha\.kubernetes\.io/hostname"="influx.$DomainName" `
     --set service.annotations."service\.beta\.kubernetes\.io/aws-load-balancer-scheme"=internet-facing
+    # --set persistence.storageClass=gp2
 
 # 외부에서 접속 가능한 LoadBalancer 주소 기다리기
 Write-Host "LoadBalancer 주소 할당 대기 중..."
@@ -232,25 +232,25 @@ do {
 Write-Host "접속 주소: $influxdbIp"
 
 # DB 생성 (influx CLI 사용 안하는 버전)
-Write-Host "InfluxDB에 접속해서 k6 데이터베이스 생성 중..."
-$createDbCmd = "CREATE DATABASE k6"
-$resp = Invoke-WebRequest -Uri "http://$influxdbIp:8086/query" `
-    -Method POST `
-    -Body @{q=$createDbCmd} `
-    -ContentType "application/x-www-form-urlencoded"
+# Write-Host "InfluxDB에 접속해서 k6 데이터베이스 생성 중..."
+# $createDbCmd = "CREATE DATABASE k6"
+# $resp = Invoke-WebRequest -Uri "http://$influxdbIp:8086/query" `
+#     -Method POST `
+#     -Body @{q=$createDbCmd} `
+#     -ContentType "application/x-www-form-urlencoded"
 
-if ($resp.StatusCode -eq 200) {
-    Write-Host "'k6' 데이터베이스 생성 완료"
-} else {
-    Write-Host "데이터베이스 생성 실패. 응답 코드: $($resp.StatusCode)"
-}
+# if ($resp.StatusCode -eq 200) {
+#     Write-Host "'k6' 데이터베이스 생성 완료"
+# } else {
+#     Write-Host "데이터베이스 생성 실패. 응답 코드: $($resp.StatusCode)"
+# }
 
 # DB 생성 (influx CLI 사용하는 버전)
 # monitoring 네임스페이스에서 influxdb Pod 이름 자동 조회
-# $podName = kubectl get pods -n monitoring -l app.kubernetes.io/name=influxdb -o jsonpath='{.items[0].metadata.name}'
-# Write-Host "InfluxDB Pod 이름: $podName"
-# # Pod 내부에서 influxdb CLI로 k6 데이터베이스 생성
-# kubectl exec -n monitoring $podName -- influx -execute "CREATE DATABASE k6"
+$podName = kubectl get pods -n monitoring -l app.kubernetes.io/name=influxdb -o jsonpath='{.items[0].metadata.name}'
+Write-Host "InfluxDB Pod 이름: $podName"
+# Pod 내부에서 influxdb CLI로 k6 데이터베이스 생성
+kubectl exec -n monitoring $podName -- influx -execute "CREATE DATABASE k6"
 
 # Sealed Secrets Controller 설치
 Write-Host "`n=== Sealed Secrets Controller 설치 ===" -ForegroundColor Cyan
