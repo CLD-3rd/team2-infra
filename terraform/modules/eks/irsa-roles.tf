@@ -62,7 +62,8 @@ resource "aws_iam_policy" "karpenter" {
           "sqs:DeleteMessage",
           "sqs:GetQueueAttributes",
           "ec2:DescribeLaunchTemplateVersions",
-          "ec2:TerminateInstances"
+          "ec2:TerminateInstances",
+          "iam:CreateServiceLinkedRole"
         ]
         Resource = "*"
       },
