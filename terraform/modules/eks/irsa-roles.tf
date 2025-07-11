@@ -60,7 +60,9 @@ resource "aws_iam_policy" "karpenter" {
           "sqs:GetQueueUrl",
           "sqs:ReceiveMessage",
           "sqs:DeleteMessage",
-          "sqs:GetQueueAttributes"
+          "sqs:GetQueueAttributes",
+          "ec2:DescribeLaunchTemplateVersions",
+          "ec2:TerminateInstances"
         ]
         Resource = "*"
       },

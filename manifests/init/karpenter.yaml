@@ -19,7 +19,7 @@ spec:
   template:
     metadata:
       labels:
-        savemypodo.com/cluster: savemypodo-cluster
+        karpenter.sh/cluster: savemypodo-cluster
     spec:
       requirements:
         - key: kubernetes.io/arch
@@ -35,7 +35,7 @@ spec:
           operator: In
           values: ["c", "m", "r"]
         - key: karpenter.k8s.aws/instance-generation
-          operator: Gt #?�스?�스 ?��?가 2보다 ??�??�용
+          operator: Gt #?�스?�스 ?��?가 2보다 ??�??�용
           values: ["2"]
       nodeClassRef:
         group: karpenter.k8s.aws
@@ -64,4 +64,4 @@ spec:
   userData: |
     #!/bin/bash
     /etc/eks/bootstrap.sh savemypodo-cluster
-    yum install -y links tree jq tcpdump sysstat htop iotop
+    dnf install -y links tree jq tcpdump sysstat htop iotop
