@@ -35,7 +35,7 @@ spec:
           operator: In
           values: ["c", "m", "r"]
         - key: karpenter.k8s.aws/instance-generation
-          operator: Gt #인스턴스 세대가 2보다 큰 것 사용
+          operator: Gt #?�스?�스 ?��?가 2보다 ??�??�용
           values: ["2"]
       nodeClassRef:
         group: karpenter.k8s.aws

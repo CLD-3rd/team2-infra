@@ -133,6 +133,11 @@ module "route_tables" {
           cidr_block     = "0.0.0.0/0"
           gateway_id     = null
           nat_gateway_id = module.nat_gateway.nat_gateway_id
+        },
+        {
+          cidr_block     = "10.22.0.0/16" # VPN 클라이언트 CIDR
+          gateway_id     = null
+          nat_gateway_id = null
         }
       ]
       tags = {}
