@@ -56,7 +56,11 @@ resource "aws_iam_policy" "karpenter" {
           "ec2:CreateLaunchTemplate",
           "ec2:CreateFleet",
           "ec2:DescribeSpotPriceHistory",
-          "pricing:GetProducts"
+          "pricing:GetProducts",
+          "sqs:GetQueueUrl",
+          "sqs:ReceiveMessage",
+          "sqs:DeleteMessage",
+          "sqs:GetQueueAttributes"
         ]
         Resource = "*"
       },
