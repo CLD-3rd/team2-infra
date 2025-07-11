@@ -20,7 +20,7 @@ prometheus:
           accessModes: ["ReadWriteOnce"]
           resources:
             requests:
-              storage: 10Gi
+              storage: 5Gi
     
     # 서비스 모니터 셀렉터 설정
     # HelmValues에 있는것만 하지 않고 추가적으로 선택하겠다.
@@ -67,7 +67,7 @@ grafana:
     storageClassName: gp2 # EKS의 기본 스토리지 클래스 사용
     accessModes:
       - ReadWriteOnce
-    size: 10Gi
+    size: 5Gi
 
 alertmanager:
   # AlertManager 설정
