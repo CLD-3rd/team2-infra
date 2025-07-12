@@ -95,6 +95,7 @@ output "nat_gateway_public_ip" {
 output "client_vpn_endpoint_id" {
   description = "ID of the Client VPN endpoint"
   value       = module.client_vpn.client_vpn_endpoint_id
+  sensitive   = true
 }
 
 output "client_vpn_dns_name" {
@@ -105,4 +106,8 @@ output "client_vpn_dns_name" {
 output "image_cdn_domain_name" {
   description = "Domain name of the Image CDN distribution"
   value       = module.image_cdn.distribution_domain_name
+}
+
+output "oidc_role_arn" {
+  value = module.github_oidc_role.role_arn
 }

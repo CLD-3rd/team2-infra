@@ -21,7 +21,7 @@ metadata:
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}]'
-    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-2:061039804626:certificate/abd7417c-4914-4f24-b097-f6799e058a5e # ACM 인증서 ARN을 여기에 입력!!
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-2:061039804626:certificate/26daa652-f754-4e79-8f05-b11413914a44 # ACM 인증서 ARN을 여기에 입력!!
     external-dns.alpha.kubernetes.io/hostname: api.savemypodo.shop
     alb.ingress.kubernetes.io/backend-protocol: HTTP
 spec:

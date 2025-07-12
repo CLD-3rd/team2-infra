@@ -11,6 +11,7 @@ metadata:
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-type: nlb
     service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+    external-dns.alpha.kubernetes.io/hostname: argocd.savemypodo.shop
 spec:
   type: LoadBalancer
   ports:
@@ -33,20 +34,21 @@ metadata:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: savemypodo-kustomize-dev
-  namespace: dev
+  name: savemypodo-dev
+  namespace: argocd
 spec:
-  project: default
-  source:
-    repoURL: https://github.com/CLD-3rd/team2-infra
-    targetRevision: HEAD
-    path: manifests/overlays/dev
   destination:
-    server: https://kubernetes.default.svc
     namespace: dev
+    server: https://kubernetes.default.svc
+  source:
+    path: manifests/overlays/dev
+    repoURL: https://github.com/CLD-3rd/team2-infra
+    targetRevision: dev
+  sources: []
+  project: default
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
-    - CreateNamespace=true
+      - CreateNamespace=true
