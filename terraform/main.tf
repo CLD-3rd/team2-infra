@@ -557,7 +557,7 @@ resource "aws_sqs_queue" "karpenter_interruption_queue" {
 
 
 module "github_oidc_role" {
-  source = "../modules/github_oidc_role"
+  source = "./modules/github_oidc_role"
 
   role_name           = "${var.service_name}-GitHubActionsOIDCRole-Frontend"
   github_repo_pattern = "repo:CLD-3rd/team2-frontend:*"
@@ -592,8 +592,4 @@ module "github_oidc_role" {
       })
     }
   ]
-}
-
-output "oidc_role_arn" {
-  value = module.github_oidc_role.role_arn
 }
