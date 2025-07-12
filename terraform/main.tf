@@ -554,3 +554,46 @@ resource "aws_sqs_queue" "karpenter_interruption_queue" {
     Name        = "${lower(var.service_name)}-cluster"
   }
 }
+
+
+module "github_oidc_role" {
+  source = "../modules/github_oidc_role"
+
+  role_name           = "${var.service_name}-GitHubActionsOIDCRole-Frontend"
+  github_repo_pattern = "repo:CLD-3rd/team2-frontend:*"
+  inline_policies = [
+    {
+      name = "frontend-s3-cloudfront"
+      policy = jsonencode({
+        Version = "2012-10-17"
+        Statement = [
+          {
+            Effect = "Allow"
+            Action = [
+              "s3:PutObject",
+              "s3:PutObjectAcl",
+              "s3:DeleteObject",
+              "s3:GetObject",
+              "s3:ListBucket"
+            ]
+            Resource = [
+              "arn:aws:s3:::${local.bucket_name}",
+              "arn:aws:s3:::${local.bucket_name}/*"
+            ]
+          },
+          {
+            Effect = "Allow"
+            Action = [
+              "cloudfront:CreateInvalidation"
+            ]
+            Resource = module.cdn.distribution_arn
+          }
+        ]
+      })
+    }
+  ]
+}
+
+output "oidc_role_arn" {
+  value = module.github_oidc_role.role_arn
+}
