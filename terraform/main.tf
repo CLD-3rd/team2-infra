@@ -546,6 +546,17 @@ module "ssm_parameter" {
   }
 }
 
+module "ssm_parameter" {
+  source = "./modules/ssm-parameter"
+
+  key_name = "/${lower(var.service_name)}/rds/admin_password"
+  value    = var.rds_admin_password
+  tags     = {
+    Name        = "${var.service_name}-RDSAdminPassword"
+    Environment = var.environment
+  }
+}
+
 resource "aws_sqs_queue" "karpenter_interruption_queue" {
   name = "${lower(var.service_name)}-cluster"
 
