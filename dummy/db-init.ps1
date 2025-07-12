@@ -2,16 +2,16 @@ $ServiceName = "savemypodo"
 $dbPassword = $(aws ssm get-parameter --name "/$ServiceName/rds/admin_password" --with-decryption --query Parameter.Value --output text)
 
 # MySQL init
-mysql -h <RDS 엔드포인트> -P 3306 -u admin -p$dbPassword savemypodo < .\init.sql
+cmd /c "mysql --default-character-set=utf8mb4 -h savemypodo-mysql.c3qme6c6e7fj.ap-northeast-2.rds.amazonaws.com -P 3306 -u admin -p$($dbPassword) savemypodo < init.sql"
 
 # 이미지 업로드
 $images = @(
-    "lesmis.jpg",
-    "wicked.jpg",
+    "lesmis.jpeg",
+    "wicked.jpeg",
     "jekyll.webp",
-    "hedwig.jpg",
+    "hedwig.jpeg",
     "lionking.webp",
-    "phantom.jpg"
+    "phantom.jpeg"
 )
 
 $bucketName = "$ServiceName-images"
