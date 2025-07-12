@@ -50,3 +50,10 @@ variable "grafana_admin_password" {
   type        = string
   sensitive   = true
 }
+
+variable "rds_admin_password" {
+  description = "RDS admin password"
+  type        = string
+  sensitive   = true
+  
+}
