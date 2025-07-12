@@ -535,7 +535,7 @@ module "client_vpn" {
 
 
 # SSM Parameter for Grafana Admin Password
-module "ssm_parameter" {
+module "ssm_parameter_grafana" {
   source = "./modules/ssm-parameter"
 
   key_name = "/${lower(var.service_name)}/grafana/admin_password"
@@ -546,7 +546,7 @@ module "ssm_parameter" {
   }
 }
 
-module "ssm_parameter" {
+module "ssm_parameter_rds" {
   source = "./modules/ssm-parameter"
 
   key_name = "/${lower(var.service_name)}/rds/admin_password"
