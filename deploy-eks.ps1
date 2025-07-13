@@ -5,7 +5,8 @@ param(
     [string]$AccountId,
     [string]$Domain = "savemypodo.shop",
     [string]$NodegroupName = "savemypodo-cluster-bootstrap",
-    [string]$ServiceName = "savemypodo"
+    [string]$ServiceName = "savemypodo",
+    [string]$LBType = "internal" # "internal" 또는 "internet-facing"
 )
 
 # 계정 ID 가져오기
@@ -103,7 +104,7 @@ helm upgrade --install kube-ops-view geek-cookbook/kube-ops-view `
 --version 1.2.2 `
 --set service.main.type=LoadBalancer `
 --set service.main.ports.http.port=8080 `
---set service.main.annotations."service\.beta\.kubernetes\.io/aws-load-balancer-scheme"=internet-facing `
+--set service.main.annotations."service\.beta\.kubernetes\.io/aws-load-balancer-scheme"=$LBType `
 --namespace kube-system `
 --wait
 kubectl annotate service kube-ops-view -n kube-system "external-dns.alpha.kubernetes.io/hostname=kubeopsview.$Domain"
@@ -134,7 +135,7 @@ kubectl create configmap fluent-bit-cluster-info `
 -n amazon-cloudwatch
 
 # Fluent Bit 구성 적용 (DaemonSet + ConfigMap 포함)
-kubectl apply -f https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-insights/latest/k8s-deployment-manifest-templates/deployment-mode/daemonset/container-insights-monitoring/fluent-bit/fluent-bit.yaml
+kubectl apply -f fluent-bit.yaml
 
 
 # # 9. X-Ray 데몬 설치 (현재 필요하지 않음)
@@ -164,12 +165,9 @@ Set-Content -Path $filePath -Value $content
 Select-String -Path $filePath -Pattern 'dnsPolicy'
 
 # karpenter CRD 등록
-kubectl apply -f `
-    "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v${KarpenterVersion}/pkg/apis/crds/karpenter.sh_nodepools.yaml"
-kubectl apply -f `
-    "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v${KarpenterVersion}/pkg/apis/crds/karpenter.k8s.aws_ec2nodeclasses.yaml"
-kubectl apply -f `
-    "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v${KarpenterVersion}/pkg/apis/crds/karpenter.sh_nodeclaims.yaml"
+kubectl apply -f "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v$KarpenterVersion/pkg/apis/crds/karpenter.sh_nodepools.yaml"
+kubectl apply -f "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v$KarpenterVersion/pkg/apis/crds/karpenter.k8s.aws_ec2nodeclasses.yaml"
+kubectl apply -f "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v$KarpenterVersion/pkg/apis/crds/karpenter.sh_nodeclaims.yaml"
 
 Write-Host "`nCRD가 준비될 때까지 대기 중..." -ForegroundColor Yellow
 kubectl wait --for=condition=Established crd/ec2nodeclasses.karpenter.k8s.aws --timeout=60s
@@ -214,43 +212,28 @@ helm repo add influxdata https://helm.influxdata.com/
 helm repo update
 helm upgrade --install influxdb influxdata/influxdb `
     -n monitoring `
-    --set persistence.size=10Gi `
     --set service.type=LoadBalancer `
     --set service.port=8086 `
     --set service.annotations."external-dns\.alpha\.kubernetes\.io/hostname"="influx.$DomainName" `
-    --set service.annotations."service\.beta\.kubernetes\.io/aws-load-balancer-scheme"=internet-facing `
-    --set persistence.storageClass=gp2
+    --set service.annotations."service\.beta\.kubernetes\.io/aws-load-balancer-scheme"=$LBType
 
-# 외부에서 접속 가능한 LoadBalancer 주소 기다리기
-Write-Host "LoadBalancer 주소 할당 대기 중..."
-$influxdbIp = ""
-do {
-    Start-Sleep -Seconds 5
-    $influxdbIp = kubectl get svc influxdb -n monitoring -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
-} while ($influxdbIp -eq "")
 
-Write-Host "접속 주소: $influxdbIp"
-
-# DB 생성 (influx CLI 사용 안하는 버전)
-# Write-Host "InfluxDB에 접속해서 k6 데이터베이스 생성 중..."
-# $createDbCmd = "CREATE DATABASE k6"
-# $resp = Invoke-WebRequest -Uri "http://$influxdbIp:8086/query" `
-#     -Method POST `
-#     -Body @{q=$createDbCmd} `
-#     -ContentType "application/x-www-form-urlencoded"
-
-# if ($resp.StatusCode -eq 200) {
-#     Write-Host "'k6' 데이터베이스 생성 완료"
-# } else {
-#     Write-Host "데이터베이스 생성 실패. 응답 코드: $($resp.StatusCode)"
-# }
-
-# DB 생성 (influx CLI 사용하는 버전)
+# DB 생성 (influx CLI 사용)
 # monitoring 네임스페이스에서 influxdb Pod 이름 자동 조회
 $podName = kubectl get pods -n monitoring -l app.kubernetes.io/name=influxdb -o jsonpath='{.items[0].metadata.name}'
 Write-Host "InfluxDB Pod 이름: $podName"
+
+# Pod가 Ready 상태가 될 때까지 최대 180초(3분) 기다리기
+kubectl wait pod/$podName -n monitoring --for=condition=Ready --timeout=180s
+
 # Pod 내부에서 influxdb CLI로 k6 데이터베이스 생성
-kubectl exec -n monitoring $podName -- influx -execute "CREATE DATABASE k6"
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "InfluxDB Pod가 Ready 상태입니다. DB 생성 명령 실행합니다."
+    kubectl exec -n monitoring $podName -- influx -execute "CREATE DATABASE k6"
+    Write-Host "k6 데이터베이스가 생성되었습니다."
+} else {
+    Write-Host "InfluxDB Pod가 지정 시간 내에 Ready 상태가 되지 않았습니다." -ForegroundColor Red
+}
 
 # Sealed Secrets Controller 설치
 Write-Host "`n=== Sealed Secrets Controller 설치 ===" -ForegroundColor Cyan

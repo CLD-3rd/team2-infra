@@ -1,6 +1,7 @@
 resources:
 - ../../../base/savemypodo-app
 
-replicas:
-  - name: savemypodo-app-deployment
-    count: 7
+patches:
+- patch-hpa.yaml
+- patch-deployment.yaml
+- patch-service_monitor.yaml
