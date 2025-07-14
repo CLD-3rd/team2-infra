@@ -144,45 +144,45 @@ kubectl apply -f fluent-bit.yaml
 # Write-Host "`n9. X-Ray 데몬 설치 중..." -ForegroundColor Cyan
 # kubectl apply -f xray-daemon.yaml
 
-# 10. Karpenter 설치
-Write-Host "`n10. Karpenter 설치 중..." -ForegroundColor Cyan
-$KarpenterVersion = "1.5.2"
-kubectl create namespace karpenter
+# # 10. Karpenter 설치
+# Write-Host "`n10. Karpenter 설치 중..." -ForegroundColor Cyan
+# $KarpenterVersion = "1.5.2"
+# kubectl create namespace karpenter
 
-helm template karpenter oci://public.ecr.aws/karpenter/karpenter --version $KarpenterVersion `
-    --namespace karpenter --create-namespace `
-    --set settings.clusterName=$ClusterName `
-    --set "serviceAccount.annotations.eks\.amazonaws\.com/role-arn=arn:aws:iam::${AccountId}:role/${ClusterName}-karpenter" `
-    --set settings.interruptionQueue=$ClusterName `
-    --set controller.resources.requests.cpu=1 `
-    --set controller.resources.requests.memory=1Gi `
-    --set controller.resources.limits.cpu=1 `
-    --set controller.resources.limits.memory=1Gi > karpenter-patched.yaml
+# helm template karpenter oci://public.ecr.aws/karpenter/karpenter --version $KarpenterVersion `
+#     --namespace karpenter --create-namespace `
+#     --set settings.clusterName=$ClusterName `
+#     --set "serviceAccount.annotations.eks\.amazonaws\.com/role-arn=arn:aws:iam::${AccountId}:role/${ClusterName}-karpenter" `
+#     --set settings.interruptionQueue=$ClusterName `
+#     --set controller.resources.requests.cpu=1 `
+#     --set controller.resources.requests.memory=1Gi `
+#     --set controller.resources.limits.cpu=1 `
+#     --set controller.resources.limits.memory=1Gi > karpenter-patched.yaml
 
-# dnsPolicy 수정
-# $filePath = "karpenter-patched.yaml"
-# $content = Get-Content -Path $filePath
-# $content = $content -replace 'dnsPolicy: ClusterFirst', 'dnsPolicy: Default'
-# Set-Content -Path $filePath -Value $content
-# Select-String -Path $filePath -Pattern 'dnsPolicy'
+# # dnsPolicy 수정
+# # $filePath = "karpenter-patched.yaml"
+# # $content = Get-Content -Path $filePath
+# # $content = $content -replace 'dnsPolicy: ClusterFirst', 'dnsPolicy: Default'
+# # Set-Content -Path $filePath -Value $content
+# # Select-String -Path $filePath -Pattern 'dnsPolicy'
 
-# karpenter CRD 등록
-kubectl create -f "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v$KarpenterVersion/pkg/apis/crds/karpenter.sh_nodepools.yaml"
-kubectl create -f "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v$KarpenterVersion/pkg/apis/crds/karpenter.k8s.aws_ec2nodeclasses.yaml"
-kubectl create -f "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v$KarpenterVersion/pkg/apis/crds/karpenter.sh_nodeclaims.yaml"
+# # karpenter CRD 등록
+# kubectl create -f "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v$KarpenterVersion/pkg/apis/crds/karpenter.sh_nodepools.yaml"
+# kubectl create -f "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v$KarpenterVersion/pkg/apis/crds/karpenter.k8s.aws_ec2nodeclasses.yaml"
+# kubectl create -f "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v$KarpenterVersion/pkg/apis/crds/karpenter.sh_nodeclaims.yaml"
 
-Write-Host "`nCRD가 준비될 때까지 대기 중..." -ForegroundColor Yellow
-kubectl wait --for=condition=Established crd/ec2nodeclasses.karpenter.k8s.aws --timeout=60s
-kubectl wait --for=condition=Established crd/nodeclaims.karpenter.sh --timeout=60s
-kubectl wait --for=condition=Established crd/nodepools.karpenter.sh --timeout=60s
+# Write-Host "`nCRD가 준비될 때까지 대기 중..." -ForegroundColor Yellow
+# kubectl wait --for=condition=Established crd/ec2nodeclasses.karpenter.k8s.aws --timeout=60s
+# kubectl wait --for=condition=Established crd/nodeclaims.karpenter.sh --timeout=60s
+# kubectl wait --for=condition=Established crd/nodepools.karpenter.sh --timeout=60s
 
-kubectl apply -f karpenter-patched.yaml
+# kubectl apply -f karpenter-patched.yaml
 
-# Karpenter Pod가 Ready 상태가 될 때까지 대기
-Write-Host "`nKarpenter 컨트롤러 Pod가 준비될 때까지 대기 중..." -ForegroundColor Yellow
-kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=karpenter --namespace karpenter --timeout=180s
+# # Karpenter Pod가 Ready 상태가 될 때까지 대기
+# Write-Host "`nKarpenter 컨트롤러 Pod가 준비될 때까지 대기 중..." -ForegroundColor Yellow
+# kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=karpenter --namespace karpenter --timeout=180s
 
-kubectl apply -f karpenter.yaml
+# kubectl apply -f karpenter.yaml
 
 
 # prometheus, grafana 설치
@@ -209,37 +209,37 @@ helm upgrade --install prometheus-stack prometheus-community/kube-prometheus-sta
 #     --set grafana.adminPassword="$GrafanaPw"
 
 # influxdb 설치
-Write-Host "`n=== InfluxDB 설치 ===" -ForegroundColor Cyan
-helm repo add influxdata https://helm.influxdata.com/
-helm repo update
-helm upgrade --install influxdb influxdata/influxdb `
-    -n monitoring `
-    --set service.type=LoadBalancer `
-    --set service.port=8086 `
-    --set service.annotations."external-dns\.alpha\.kubernetes\.io/hostname"="influx.$DomainName" `
-    --set service.annotations."service\.beta\.kubernetes\.io/aws-load-balancer-scheme"=$LBType
+# Write-Host "`n=== InfluxDB 설치 ===" -ForegroundColor Cyan
+# helm repo add influxdata https://helm.influxdata.com/
+# helm repo update
+# helm upgrade --install influxdb influxdata/influxdb `
+#     -n monitoring `
+#     --set service.type=LoadBalancer `
+#     --set service.port=8086 `
+#     --set service.annotations."external-dns\.alpha\.kubernetes\.io/hostname"="influx.$DomainName" `
+#     --set service.annotations."service\.beta\.kubernetes\.io/aws-load-balancer-scheme"=$LBType
 
 
-# DB 생성 (influx CLI 사용)
-# monitoring 네임스페이스에서 influxdb Pod 이름 자동 조회
-$podName = kubectl get pods -n monitoring -l app.kubernetes.io/name=influxdb -o jsonpath='{.items[0].metadata.name}'
-Write-Host "InfluxDB Pod 이름: $podName"
+# # DB 생성 (influx CLI 사용)
+# # monitoring 네임스페이스에서 influxdb Pod 이름 자동 조회
+# $podName = kubectl get pods -n monitoring -l app.kubernetes.io/name=influxdb -o jsonpath='{.items[0].metadata.name}'
+# Write-Host "InfluxDB Pod 이름: $podName"
 
-# Pod가 Ready 상태가 될 때까지 최대 180초(3분) 기다리기
-kubectl wait pod/$podName -n monitoring --for=condition=Ready --timeout=180s
+# # Pod가 Ready 상태가 될 때까지 최대 180초(3분) 기다리기
+# kubectl wait pod/$podName -n monitoring --for=condition=Ready --timeout=180s
 
-# Pod 내부에서 influxdb CLI로 k6 데이터베이스 생성
-if ($LASTEXITCODE -eq 0) {
-    Write-Host "InfluxDB Pod가 Ready 상태입니다. DB 생성 명령 실행합니다."
-    kubectl exec -n monitoring $podName -- influx -execute "CREATE DATABASE k6"
-    Write-Host "k6 데이터베이스가 생성되었습니다."
-} else {
-    Write-Host "InfluxDB Pod가 지정 시간 내에 Ready 상태가 되지 않았습니다." -ForegroundColor Red
-}
+# # Pod 내부에서 influxdb CLI로 k6 데이터베이스 생성
+# if ($LASTEXITCODE -eq 0) {
+#     Write-Host "InfluxDB Pod가 Ready 상태입니다. DB 생성 명령 실행합니다."
+#     kubectl exec -n monitoring $podName -- influx -execute "CREATE DATABASE k6"
+#     Write-Host "k6 데이터베이스가 생성되었습니다."
+# } else {
+#     Write-Host "InfluxDB Pod가 지정 시간 내에 Ready 상태가 되지 않았습니다." -ForegroundColor Red
+# }
 
-# Sealed Secrets Controller 설치
-Write-Host "`n=== Sealed Secrets Controller 설치 ===" -ForegroundColor Cyan
-kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/latest/download/controller.yaml
+# # Sealed Secrets Controller 설치
+# Write-Host "`n=== Sealed Secrets Controller 설치 ===" -ForegroundColor Cyan
+# kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/latest/download/controller.yaml
 
 
 # 11. 서비스 URL 확인
