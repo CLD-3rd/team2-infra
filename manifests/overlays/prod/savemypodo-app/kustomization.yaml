@@ -5,5 +5,3 @@ patches:
   - path: patch-hpa.yaml
   - path: patch-deployment.yaml
   - path: patch-service_monitor.yaml
-
-namespace: prod
