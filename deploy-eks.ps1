@@ -45,6 +45,7 @@ foreach ($file in $files) {
         Write-Host "업데이트됨: $file" -ForegroundColor Green
     }
 }
+
 # 3. Cert-Manager 설치
 Write-Host "`n3. Cert-Manager 설치 중..." -ForegroundColor Cyan
 kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.13.3/cert-manager.yaml
@@ -94,6 +95,7 @@ Write-Host $argoPassword -ForegroundColor White
 
 # 6. Metrics Server 설치
 kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+kubectl -n kube-system patch deployment metrics-server --type='json' -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--kubelet-insecure-tls"}]'
 
 
 # 7. Kube-ops-view 설치
@@ -158,16 +160,16 @@ helm template karpenter oci://public.ecr.aws/karpenter/karpenter --version $Karp
     --set controller.resources.limits.memory=1Gi > karpenter-patched.yaml
 
 # dnsPolicy 수정
-$filePath = "karpenter-patched.yaml"
-$content = Get-Content -Path $filePath
-$content = $content -replace 'dnsPolicy: ClusterFirst', 'dnsPolicy: Default'
-Set-Content -Path $filePath -Value $content
-Select-String -Path $filePath -Pattern 'dnsPolicy'
+# $filePath = "karpenter-patched.yaml"
+# $content = Get-Content -Path $filePath
+# $content = $content -replace 'dnsPolicy: ClusterFirst', 'dnsPolicy: Default'
+# Set-Content -Path $filePath -Value $content
+# Select-String -Path $filePath -Pattern 'dnsPolicy'
 
 # karpenter CRD 등록
-kubectl apply -f "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v$KarpenterVersion/pkg/apis/crds/karpenter.sh_nodepools.yaml"
-kubectl apply -f "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v$KarpenterVersion/pkg/apis/crds/karpenter.k8s.aws_ec2nodeclasses.yaml"
-kubectl apply -f "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v$KarpenterVersion/pkg/apis/crds/karpenter.sh_nodeclaims.yaml"
+kubectl create -f "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v$KarpenterVersion/pkg/apis/crds/karpenter.sh_nodepools.yaml"
+kubectl create -f "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v$KarpenterVersion/pkg/apis/crds/karpenter.k8s.aws_ec2nodeclasses.yaml"
+kubectl create -f "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v$KarpenterVersion/pkg/apis/crds/karpenter.sh_nodeclaims.yaml"
 
 Write-Host "`nCRD가 준비될 때까지 대기 중..." -ForegroundColor Yellow
 kubectl wait --for=condition=Established crd/ec2nodeclasses.karpenter.k8s.aws --timeout=60s
