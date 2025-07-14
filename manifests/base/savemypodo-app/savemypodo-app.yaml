@@ -85,13 +85,13 @@ spec:
         - protocol: TCP
           containerPort: 8080
         
-    resources:
-      requests:
-        cpu: "300m"
-        memory: "512Mi"
-      limits:
-        cpu: "1"
-        memory: "1Gi"
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "256Mi"
+          limits:
+            cpu: "300m"
+            memory: "512Mi"
 
         # promethues 설정 완료되면 주석해제
         # livenessProbe:
