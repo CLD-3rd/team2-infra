@@ -1,5 +1,5 @@
 resources:
 - savemypodo-app
+- monitoring
 
-namespace: dev
 
