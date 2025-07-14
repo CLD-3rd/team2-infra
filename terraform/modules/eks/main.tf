@@ -106,6 +106,7 @@ resource "aws_security_group" "node_sg" {
     self      = true
   }
 
+
   ingress {
     from_port       = 1025
     to_port         = 65535
