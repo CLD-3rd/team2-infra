@@ -3,6 +3,6 @@ resources:
 
 
 patches:
-- patch-hpa.yaml
-- patch-deployment.yaml
-- patch-service_monitor.yaml
+  - path: patch-hpa.yaml
+  - path: patch-deployment.yaml
+  - path: patch-service_monitor.yaml
