@@ -126,12 +126,27 @@ resource "aws_security_group" "node_sg" {
     cidr_blocks = ["192.168.0.0/16"]
   }
 
+  ingress {
+    from_port   = 53
+    to_port     = 53
+    protocol    = "udp"
+    self        = true
+  }
+
+  ingress {
+    from_port   = 53
+    to_port     = 53
+    protocol    = "tcp"
+    self        = true
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  
 
   tags = merge(var.tags, {
     Name = "${var.cluster_name}-node-sg"
