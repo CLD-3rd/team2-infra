@@ -316,7 +316,7 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       priorityClassName: "system-cluster-critical"
-      dnsPolicy: Default
+      dnsPolicy: ClusterFirst
       schedulerName: "default-scheduler"
       containers:
         - name: controller

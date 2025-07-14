@@ -70,7 +70,7 @@ spec:
   source:
     path: manifests/overlays/monitoring-dev
     repoURL: https://github.com/CLD-3rd/team2-infra
-    targetRevision: monitoring
+    targetRevision: dev
   sources: []
   project: default
   syncPolicy:
