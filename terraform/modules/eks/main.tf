@@ -119,6 +119,12 @@ resource "aws_security_group" "node_sg" {
     protocol        = "tcp"
     security_groups = [aws_security_group.cluster_sg.id]
   }
+  ingress {
+    from_port   = 10250
+    to_port     = 10250
+    protocol    = "tcp"
+    cidr_blocks = ["192.168.0.0/16"]
+  }
 
   egress {
     from_port   = 0
