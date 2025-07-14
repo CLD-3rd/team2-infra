@@ -42,6 +42,21 @@ prometheus:
         action: keep
         regex: true
       metrics_path: /actuator/prometheus
+
+    additionalPrometheusRules:  # 👈 여기 추가!
+      - name: basic-alert-rules
+        groups:
+          - name: example-alert-group
+            rules:
+              - alert: PodNotRunning
+                expr: kube_pod_status_phase{phase="Running"} == 0
+                for: 1m
+                labels:
+                  severity: warning
+                annotations:
+                  summary: "Pod is not running"
+                  description: "No pods are in Running phase."
+                  
   
   service:
     type: LoadBalancer
