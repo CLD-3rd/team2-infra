@@ -13,7 +13,7 @@ spec:
     matchNames:
       - default
   endpoints:
-  - port: http
+  - port: "http"
     path: /actuator/prometheus
     interval: 15s
     scrapeTimeout: 10s
