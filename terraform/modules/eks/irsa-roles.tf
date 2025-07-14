@@ -222,7 +222,11 @@ resource "aws_iam_policy" "grafana" {
           "logs:GetLogEvents",
           "logs:DescribeLogStreams",
           "logs:FilterLogEvents",
-          "logs:DescribeLogGroups"
+          "logs:DescribeLogGroups",
+          "cloudwatch:ListMetrics",
+          "cloudwatch:GetMetricData",
+          "cloudwatch:GetMetricStatistics",
+          "cloudwatch:DescribeAlarms"
         ]
         Resource = "*"
       }
