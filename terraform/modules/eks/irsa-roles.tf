@@ -184,6 +184,59 @@ resource "aws_iam_role_policy_attachment" "fluent_bit" {
   role       = aws_iam_role.fluent_bit.name
 }
 
+# Grafana IRSA Role
+resource "aws_iam_role" "grafana" {
+  name = "${var.cluster_name}-grafana"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRoleWithWebIdentity"
+        Effect = "Allow"
+        Principal = {
+          Federated = aws_iam_openid_connect_provider.cluster_oidc.arn
+        }
+        Condition = {
+          StringEquals = {
+            "${replace(aws_iam_openid_connect_provider.cluster_oidc.url, "https://", "")}:sub" = "system:serviceaccount:monitoring:grafana"
+            "${replace(aws_iam_openid_connect_provider.cluster_oidc.url, "https://", "")}:aud" = "sts.amazonaws.com"
+          }
+        }
+      }
+    ]
+  })
+
+  tags = var.tags
+}
+
+resource "aws_iam_policy" "grafana" {
+  name = "${var.cluster_name}-GrafanaCloudWatchPolicy"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:GetLogEvents",
+          "logs:DescribeLogStreams",
+          "logs:FilterLogEvents",
+          "logs:DescribeLogGroups"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+
+  tags = var.tags
+}
+
+resource "aws_iam_role_policy_attachment" "grafana" {
+  policy_arn = aws_iam_policy.grafana.arn
+  role       = aws_iam_role.grafana.name
+}
+
 # X-Ray Daemon IRSA Role
 # resource "aws_iam_role" "xray_daemon" {
 #   name = "${var.cluster_name}-xray-daemon"

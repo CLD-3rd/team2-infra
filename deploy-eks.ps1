@@ -208,6 +208,19 @@ helm upgrade --install prometheus-stack prometheus-community/kube-prometheus-sta
 #     -f prometheus-stack-values.yaml `
 #     --set grafana.adminPassword="$GrafanaPw"
 
+# Loki 설치
+Write-Host "`n=== Loki 설치 ===" -ForegroundColor Cyan
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update
+
+helm upgrade --install loki grafana/loki-stack `
+    --namespace monitoring `
+    --set promtail.enabled=false `
+    --set grafana.enabled=false
+    # --set loki.service.type=LoadBalancer `
+    # --set loki.service.annotations."service\.beta\.kubernetes\.io/aws-load-balancer-scheme"=$LBType `
+    # --set loki.service.annotations."external-dns\.alpha\.kubernetes\.io/hostname"="loki.$Domain"
+
 # influxdb 설치
 # Write-Host "`n=== InfluxDB 설치 ===" -ForegroundColor Cyan
 # helm repo add influxdata https://helm.influxdata.com/
