@@ -10,7 +10,7 @@ metadata:
   namespace: argocd
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-type: nlb
-    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+    service.beta.kubernetes.io/aws-load-balancer-scheme: internal
     external-dns.alpha.kubernetes.io/hostname: argocd.savemypodo.shop
 spec:
   type: LoadBalancer

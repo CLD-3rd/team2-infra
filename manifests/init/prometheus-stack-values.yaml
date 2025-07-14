@@ -41,7 +41,7 @@ prometheus:
     type: LoadBalancer
     annotations:
       external-dns.alpha.kubernetes.io/hostname: prometheus.savemypodo.shop
-      service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+      service.beta.kubernetes.io/aws-load-balancer-scheme: internal
 
 grafana:
   
@@ -50,8 +50,8 @@ grafana:
     type: LoadBalancer
     annotations:
       external-dns.alpha.kubernetes.io/hostname: grafana.savemypodo.shop
-      service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
-  
+      service.beta.kubernetes.io/aws-load-balancer-scheme: internal
+
   # 리소스 설정
   resources:
     limits:
@@ -87,7 +87,7 @@ alertmanager:
     type: LoadBalancer
     annotations:
       external-dns.alpha.kubernetes.io/hostname: alertmanager.savemypodo.shop
-      service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+      service.beta.kubernetes.io/aws-load-balancer-scheme: internal
 
 # Node Exporter 설정
 nodeExporter:
