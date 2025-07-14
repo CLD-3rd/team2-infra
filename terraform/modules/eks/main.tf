@@ -194,7 +194,7 @@ resource "aws_eks_node_group" "bootstrap" {
 
   scaling_config {
     desired_size = 4
-    max_size     = 6
+    max_size     = 7
     min_size     = 1
   }
 
