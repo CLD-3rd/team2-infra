@@ -70,6 +70,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: savemypodo-app-deployment
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8080"
+    prometheus.io/path: "/actuator/prometheus"
 spec:
   selector:
     matchLabels:
