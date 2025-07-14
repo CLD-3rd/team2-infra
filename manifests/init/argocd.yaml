@@ -68,7 +68,7 @@ spec:
     namespace: monitoring
     server: https://kubernetes.default.svc
   source:
-    path: manifests/overlays/monitoring
+    path: manifests/overlays/monitoring-dev
     repoURL: https://github.com/CLD-3rd/team2-infra
     targetRevision: monitoring
   sources: []
