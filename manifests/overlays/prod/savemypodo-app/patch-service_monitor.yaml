@@ -1,9 +1,0 @@
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  name: savemypodo-app
-  namespace: monitoring
-spec:
-  namespaceSelector:
-    matchNames:
-      - prod

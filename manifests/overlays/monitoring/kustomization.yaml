@@ -2,3 +2,6 @@ resources:
 - ../../../base/monitoring
 
 namespace: monitoring
+
+patches:
+- path: patch-servicemonitor.yaml
