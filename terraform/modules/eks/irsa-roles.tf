@@ -199,7 +199,7 @@ resource "aws_iam_role" "grafana" {
         }
         Condition = {
           StringEquals = {
-            "${replace(aws_iam_openid_connect_provider.cluster_oidc.url, "https://", "")}:sub" = "system:serviceaccount:monitoring:grafana"
+            "${replace(aws_iam_openid_connect_provider.cluster_oidc.url, "https://", "")}:sub" = "system:serviceaccount:monitoring:prometheus-stack-grafana"
             "${replace(aws_iam_openid_connect_provider.cluster_oidc.url, "https://", "")}:aud" = "sts.amazonaws.com"
           }
         }
