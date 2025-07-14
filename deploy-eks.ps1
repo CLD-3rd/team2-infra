@@ -209,15 +209,15 @@ helm upgrade --install prometheus-stack prometheus-community/kube-prometheus-sta
 #     --set grafana.adminPassword="$GrafanaPw"
 
 # influxdb 설치
-Write-Host "`n=== InfluxDB 설치 ===" -ForegroundColor Cyan
-helm repo add influxdata https://helm.influxdata.com/
-helm repo update
-helm upgrade --install influxdb influxdata/influxdb `
-    -n monitoring `
-    --set service.type=LoadBalancer `
-    --set service.port=8086 `
-    --set service.annotations."external-dns\.alpha\.kubernetes\.io/hostname"="influx.$DomainName" `
-    --set service.annotations."service\.beta\.kubernetes\.io/aws-load-balancer-scheme"=$LBType
+# Write-Host "`n=== InfluxDB 설치 ===" -ForegroundColor Cyan
+# helm repo add influxdata https://helm.influxdata.com/
+# helm repo update
+# helm upgrade --install influxdb influxdata/influxdb `
+#     -n monitoring `
+#     --set service.type=LoadBalancer `
+#     --set service.port=8086 `
+#     --set service.annotations."external-dns\.alpha\.kubernetes\.io/hostname"="influx.$DomainName" `
+#     --set service.annotations."service\.beta\.kubernetes\.io/aws-load-balancer-scheme"=$LBType
 
 
 # DB 생성 (influx CLI 사용)

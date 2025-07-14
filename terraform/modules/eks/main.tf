@@ -193,8 +193,8 @@ resource "aws_eks_node_group" "bootstrap" {
   disk_size      = 20
 
   scaling_config {
-    desired_size = 3
-    max_size     = 3
+    desired_size = 4
+    max_size     = 6
     min_size     = 1
   }
 
