@@ -556,6 +556,18 @@ module "ssm_parameter_rds" {
     Environment = var.environment
   }
 }
+# SSM Parameter for google smtp Password
+module "ssm_parameter_google_smtp" {
+  source = "./modules/ssm-parameter"
+
+  key_name = "/${lower(var.service_name)}/alertmanager/google_smtp_password"
+  value    = var.google_smtp_password
+  tags     = {
+    Name        = "${var.service_name}-GoogleSMTPPassword"
+    Environment = var.environment
+  }
+}
+
 
 resource "aws_sqs_queue" "karpenter_interruption_queue" {
   name = "${lower(var.service_name)}-cluster"
