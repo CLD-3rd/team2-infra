@@ -242,6 +242,14 @@ helm upgrade --install prometheus-stack prometheus-community/kube-prometheus-sta
 # Write-Host "`n=== Sealed Secrets Controller 설치 ===" -ForegroundColor Cyan
 # kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/latest/download/controller.yaml
 
+# Cluster Autoscaler 설치
+Write-Host "`n=== Cluster Autoscaler 설치 ===" -ForegroundColor Cyan
+curl -s -O https://raw.githubusercontent.com/kubernetes/autoscaler/master/cluster-autoscaler/cloudprovider/aws/examples/cluster-autoscaler-autodiscover.yaml
+
+
+# 리소스 배포 및 확인
+kubectl apply -f cluster-autoscaler-autodiscover.yaml
+
 
 # 11. 서비스 URL 확인
 Write-Host "`n=== 서비스 접속 정보 ===" -ForegroundColor Green
