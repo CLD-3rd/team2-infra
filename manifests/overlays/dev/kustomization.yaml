@@ -1,4 +1,4 @@
 resources:
 - savemypodo-app
 
-namespace: dev
+namespace: test-dev
