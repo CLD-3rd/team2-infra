@@ -170,7 +170,7 @@ alertmanager:
     receivers:
       - name: 'default-email'
         email_configs:
-          - to: 'fallback@yourdomain.com'
+          - to: 'michelle200323@gmail.com'
             send_resolved: true
             html: |
               <p>⚠️ 기본 알람입니다</p>
@@ -179,7 +179,7 @@ alertmanager:
 
       - name: 'cpu-alert-email'
         email_configs:
-          - to: 'cpu-team@yourdomain.com'
+          - to: 'michelle200323@gmail.com'
             send_resolved: true
             html: |
               <h3>🔥 CPU 사용률 경고</h3>
@@ -190,7 +190,7 @@ alertmanager:
 
       - name: 'memory-alert-email'
         email_configs:
-          - to: 'memory-team@yourdomain.com'
+          - to: 'michelle200323@gmail.com'
             send_resolved: true
             html: |
               <h3>💾 메모리 사용률 심각</h3>
@@ -200,7 +200,7 @@ alertmanager:
 
       - name: 'appdown-alert-email'
         email_configs:
-          - to: 'ops-team@yourdomain.com'
+          - to: 'michelle200323@gmail.com'
             send_resolved: true
             html: |
               <h3>🟥 애플리케이션 다운</h3>
@@ -209,7 +209,7 @@ alertmanager:
 
       - name: 'pod-restart-alert-email'
         email_configs:
-          - to: 'dev-team@yourdomain.com'
+          - to: 'michelle200323@gmail.com'
             send_resolved: true
             html: |
               <h3>♻️ Pod 재시작 과다</h3>
