@@ -92,11 +92,11 @@ spec:
         
         resources:
           requests:
-            cpu: "100m"
-            memory: "256Mi"
+            cpu: "1000m"      # 1 CPU
+            memory: "1024Mi"  # 1 GiB
           limits:
-            cpu: "300m"
-            memory: "512Mi"
+            cpu: "2000m"      # 2 CPU
+            memory: "2048Mi"  # 2 GiB
 
         # livenessProbe:
         #   httpGet:
