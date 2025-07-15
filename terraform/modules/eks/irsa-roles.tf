@@ -219,6 +219,9 @@ resource "aws_iam_policy" "grafana" {
       {
         Effect = "Allow"
         Action = [
+          "logs:StartQuery",
+          "logs:StopQuery",
+          "logs:GetQueryResults",
           "logs:GetLogEvents",
           "logs:DescribeLogStreams",
           "logs:FilterLogEvents",
