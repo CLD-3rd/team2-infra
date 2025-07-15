@@ -14,34 +14,34 @@ spec:
 
 ---
 
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: argocd-app-ingress
-  annotations:
-    alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}]'
-    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-2:061039804626:certificate/c5d88964-477f-47a8-b19e-f803134954b6 # ACM 인증서 ARN을 여기에 입력!!
-    external-dns.alpha.kubernetes.io/hostname: api.savemypodo.shop
-    alb.ingress.kubernetes.io/backend-protocol: HTTP
-spec:
-  ingressClassName: alb
-  rules:
-    - host: api.savemypodo.shop
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: savemypodo-app-service
-                port:
-                  number: 8080
-  tls:
-    - hosts:
-        - api.savemypodo.shop
-      secretName: dummy-placeholder  # ALB는 ACM 사용하므로 실제로는 사용되지 않음
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: argocd-app-ingress
+#   annotations:
+#     alb.ingress.kubernetes.io/scheme: internet-facing
+#     alb.ingress.kubernetes.io/target-type: ip
+#     alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}]'
+#     alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-2:061039804626:certificate/c5d88964-477f-47a8-b19e-f803134954b6 # ACM 인증서 ARN을 여기에 입력!!
+#     external-dns.alpha.kubernetes.io/hostname: api.savemypodo.shop
+#     alb.ingress.kubernetes.io/backend-protocol: HTTP
+# spec:
+#   ingressClassName: alb
+#   rules:
+#     - host: api.savemypodo.shop
+#       http:
+#         paths:
+#           - path: /
+#             pathType: Prefix
+#             backend:
+#               service:
+#                 name: savemypodo-app-service
+#                 port:
+#                   number: 8080
+#   tls:
+#     - hosts:
+#         - api.savemypodo.shop
+#       secretName: dummy-placeholder  # ALB는 ACM 사용하므로 실제로는 사용되지 않음
 
 ---
 
@@ -99,21 +99,21 @@ spec:
             cpu: "300m"
             memory: "512Mi"
 
-        livenessProbe:
-          httpGet:
-            path: /actuator/health/liveness
-            port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 3
+        # livenessProbe:
+        #   httpGet:
+        #     path: /actuator/health/liveness
+        #     port: 8080
+        #   initialDelaySeconds: 30
+        #   periodSeconds: 10
+        #   timeoutSeconds: 5
+        #   failureThreshold: 3
         
-        readinessProbe:
-          httpGet:
-            path: /actuator/health/readiness
-            port: 8080
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          timeoutSeconds: 3
-          successThreshold: 1
+        # readinessProbe:
+        #   httpGet:
+        #     path: /actuator/health/readiness
+        #     port: 8080
+        #   initialDelaySeconds: 10
+        #   periodSeconds: 5
+        #   timeoutSeconds: 3
+        #   successThreshold: 1
 
