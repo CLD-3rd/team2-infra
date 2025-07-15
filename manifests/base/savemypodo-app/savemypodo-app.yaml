@@ -86,7 +86,7 @@ spec:
     spec:
       containers:
       - name: savemypodo-app-container
-        image: cjsqudwns/savemypodo-be:23aaed2
+        image: cjsqudwns/savemypodo-be:86a58fd
         ports:
         - protocol: TCP
           containerPort: 8080
