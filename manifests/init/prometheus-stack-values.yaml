@@ -26,6 +26,7 @@ prometheus:
     # HelmValues에 있는것만 하지 않고 추가적으로 선택하겠다.
     serviceMonitorSelectorNilUsesHelmValues: false
     podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
     
     # 추가 스크랩 설정
     additionalScrapeConfigs:
