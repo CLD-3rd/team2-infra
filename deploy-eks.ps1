@@ -244,8 +244,9 @@ helm upgrade --install prometheus-stack prometheus-community/kube-prometheus-sta
 
 # Cluster Autoscaler 설치
 Write-Host "`n=== Cluster Autoscaler 설치 ===" -ForegroundColor Cyan
-curl -s -O https://raw.githubusercontent.com/kubernetes/autoscaler/master/cluster-autoscaler/cloudprovider/aws/examples/cluster-autoscaler-autodiscover.yaml
+# Invoke-WebRequest -Uri "https://raw.githubusercontent.com/kubernetes/autoscaler/master/cluster-autoscaler/cloudprovider/aws/examples/cluster-autoscaler-autodiscover.yaml" -OutFile "cluster-autoscaler-autodiscover.yaml"
 
+# 매니페스트 파일 업데이트 (your cluster name 수정, role arn 추가 => 완료됨)
 
 # 리소스 배포 및 확인
 kubectl apply -f cluster-autoscaler-autodiscover.yaml
