@@ -43,61 +43,7 @@ prometheus:
         action: keep
         regex: true
       metrics_path: /actuator/prometheus
-    # 추가 규칙
-    additionalPrometheusRulesMap:
-      springboot-critical-alerts:
-        groups:
-          - name: springboot-alert-rules
-            interval: 30s
-            rules:
-              - alert: HighCPUUsage
-                expr: |
-                  (
-                    sum(rate(container_cpu_usage_seconds_total{namespace="default", pod=~".*"}[5m])) by (pod)
-                    /
-                    sum(kube_pod_container_resource_limits{namespace="default", resource="cpu"}) by (pod)
-                  ) * 100 > 70
-                for: 5m
-                labels:
-                  severity: warning
-                  component: spring-boot
-                annotations:
-                  summary: "🔧 높은 CPU 사용률 감지"
-                  description: "Pod {{ $labels.pod }}의 CPU 사용률이 {{ $value | humanize }}%입니다. (임계값: 70%)"
-              - alert: CriticalMemoryUsage
-                expr: |
-                  (
-                    sum(container_memory_working_set_bytes{namespace="default"}) by (pod)
-                    /
-                    sum(kube_pod_container_resource_limits{namespace="default", resource="memory"}) by (pod)
-                  ) * 100 > 95
-                for: 2m
-                labels:
-                  severity: critical
-                  component: spring-boot
-                annotations:
-                  summary: "🚨 메모리 부족 위험"
-                  description: "Pod {{ $labels.pod }}의 메모리 사용률이 {{ $value | humanize }}%입니다. (임계값: 95%)"
-              - alert: AppDown
-                expr: up{job=~"spring-boot-.*"} == 0
-                for: 2m
-                labels:
-                  severity: critical
-                  component: spring-boot
-                annotations:
-                  summary: "🔴 Spring Boot 앱 응답 없음"
-                  description: "{{ $labels.instance }} 인스턴스에서 앱이 응답하지 않습니다 (up == 0)."
-              - alert: PodRestartingTooOften
-                expr: increase(kube_pod_container_status_restarts_total{namespace="default"}[1h]) > 3
-                for: 5m
-                labels:
-                  severity: warning
-                  component: spring-boot
-                annotations:
-                  summary: "♻️ Pod 재시작 빈도 높음"
-                  description: "Pod {{ $labels.pod }}가 최근 1시간 동안 {{ $value }}회 재시작했습니다."
-
-  
+    
   service:
     type: LoadBalancer
     annotations:
