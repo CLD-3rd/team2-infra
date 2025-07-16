@@ -7,7 +7,7 @@ https://github.com/CLD-3rd/team2-backend
 https://github.com/CLD-3rd/team2-infra
 
 ---
-
+<br><br><br>
 # Save My Podo
 
 ### 🍇 안정적이고 확장 가능한 공연 예매 시스템
@@ -36,6 +36,8 @@ https://github.com/CLD-3rd/team2-infra
 - AWS 인프라: S3, RDS, ElastiCache, Cloudfront, SSM Parameter, EKS, Client VPN, Cloudwatch, SNS, Route53
 - EKS 모니터링: Prometheus, Grafana, K6, fluentbit
 - CI/CD: Github Actions, ArgoCD, Kustomize
+  
+<br><br><br>
 
 # 🖥 페이지별 기능 소개
 
@@ -105,9 +107,9 @@ https://github.com/CLD-3rd/team2-infra
     - 상단 탭의 [**My Reservations**] 메뉴에서 사용자가 예매한 공연을 확인할 수 있습니다.
     - 메인 페이지에서도 예매한 공연은 **[Cancel Reservation] 버튼**이 활성화되어, 사용자는 예약을 취소할 수 있습니다.
 
----
 
 
+<br><br><br>
 # ⚙ 인프라 구성도
 
 <img width="2653" height="2159" alt="Image" src="https://github.com/user-attachments/assets/11258fa8-c33e-4c0b-be48-be3c44c8f9be" />
@@ -135,8 +137,8 @@ https://github.com/CLD-3rd/team2-infra
     - FluentBit으로 pod 로그 수집하여 CloudWatch로 전송
     - Grafana에서 대시보드로 메트릭 시각화 및 로그 확인
  
----
 
+<br><br><br>
 # 🔎 Redis 캐싱 전략
 
 ### **📌 목적**
@@ -153,8 +155,8 @@ https://github.com/CLD-3rd/team2-infra
 popular:musicals:new | 10분 |
 | 🎟 공연 좌석 정보 | 공연별 좌석 목록 캐싱 | seats:hot:{musicalId} | 10분 |
 
----
 
+<br><br><br>
 # 📈 모니터링 및 테스트
 
 ## **1. 시스템 모니터링**
@@ -192,13 +194,13 @@ popular:musicals:new | 10분 |
 
 ---
 
-    ◦ **JVM (SpringBoot) 대시보드 (로그 패널 추가)**
+- **JVM (SpringBoot) 대시보드 (로그 패널 추가)**
 
 <img width="1638" height="908" alt="Image" src="https://github.com/user-attachments/assets/b5e97851-3fb3-4f3a-bc05-cd816a97da80" />
 
 ---
 
-    ◦ **EKS 클러스터 / 네트워크**
+- **EKS 클러스터 / 네트워크**
 
 <img width="1564" height="897" alt="Image" src="https://github.com/user-attachments/assets/cfea8acb-bc57-494b-9424-96b897339b00" />
 
@@ -206,7 +208,7 @@ popular:musicals:new | 10분 |
 
 ---
 
-    ◦ **RDS / ElastiCache**
+- **RDS / ElastiCache**
 
 <img width="1574" height="899" alt="Image" src="https://github.com/user-attachments/assets/983975cc-8d4a-4adf-ba3b-3042bc8ef132" />
 
@@ -223,7 +225,7 @@ popular:musicals:new | 10분 |
 
 <img width="1580" height="723" alt="Image" src="https://github.com/user-attachments/assets/cfba66d7-41b9-4cc1-a72e-736cc6b0928d" />
 
----
+<br><br><br>
 
 ## **2. 성능 테스트 (K6)**
 
@@ -330,7 +332,7 @@ export function teardown(data) {
 
 <img width="887" height="344" alt="Image" src="https://github.com/user-attachments/assets/1ee787df-6930-4fe8-a990-7638ed54b2db" />
 
----
+<br><br><br>
 
 ## **3. 동시성 테스트**
 
@@ -560,7 +562,7 @@ VU: 2, status: 400, body: {"message":"이미 예약된 좌석입니다."}
 - ✅ 로컬과 실서버 환경 모두에서 **동시성 문제 없음** 확인
 - 🚀 실서비스에서도 좌석 중복 예약 문제 없이 운영 가능
 
----
+<br><br><br>
 
 # 👩🏻‍💻 역할 분배
 
