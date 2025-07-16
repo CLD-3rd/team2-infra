@@ -37,7 +37,7 @@ https://github.com/CLD-3rd/team2-infra
 - EKS 모니터링: Prometheus, Grafana, K6, fluentbit
 - CI/CD: Github Actions, ArgoCD, Kustomize
 
-  # 🖥 페이지별 기능 소개
+# 🖥 페이지별 기능 소개
 
 ## 메인 페이지
 
@@ -66,7 +66,9 @@ https://github.com/CLD-3rd/team2-infra
 | 이미 예매한 공연 | **[취소하기] 버튼으로 표시 변경** |
 | 매진된 공연 | **버튼 비활성화** |
 
+
 ---
+
 
 ## 로그인 페이지
 
@@ -76,7 +78,9 @@ https://github.com/CLD-3rd/team2-infra
 - 사용자는 **Google 계정 정보를 입력하여 로그인**할 수 있으며, 로그인 후 사용자 정보가 백엔드에 전달되어 인증/인가가 처리됩니다.
 - 로그인에 성공하면 메인 페이지로 리디렉션되며, 사용자 이름과 함께 **[Logout] 버튼**이 우측 상단에 표시됩니다.
 
+
 ---
+
 
 ## 예매 페이지
 
@@ -102,6 +106,7 @@ https://github.com/CLD-3rd/team2-infra
     - 메인 페이지에서도 예매한 공연은 **[Cancel Reservation] 버튼**이 활성화되어, 사용자는 예약을 취소할 수 있습니다.
 
 ---
+
 
 # ⚙ 인프라 구성도
 
