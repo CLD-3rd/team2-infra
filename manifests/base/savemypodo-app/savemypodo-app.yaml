@@ -1,0 +1,118 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: savemypodo-app-service
+spec:
+  selector:
+    app.kubernetes.io/name: savemypodo-app
+  type: ClusterIP
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: argocd-app-ingress
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-2:061039804626:certificate/c5d88964-477f-47a8-b19e-f803134954b6 # ACM 인증서 ARN을 여기에 입력!!
+    external-dns.alpha.kubernetes.io/hostname: api.savemypodo.shop
+    alb.ingress.kubernetes.io/backend-protocol: HTTP
+spec:
+  ingressClassName: alb
+  rules:
+    - host: api.savemypodo.shop
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: savemypodo-app-service
+                port:
+                  number: 8080
+  tls:
+    - hosts:
+        - api.savemypodo.shop
+      secretName: dummy-placeholder  # ALB는 ACM 사용하므로 실제로는 사용되지 않음
+
+---
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: savemypodo-app-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: savemypodo-app-deployment
+  minReplicas: 1
+  maxReplicas: 2
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: savemypodo-app-deployment
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: savemypodo-app
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: savemypodo-app
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      containers:
+      - name: savemypodo-app-container
+        image: cjsqudwns/savemypodo-be:95e42ba
+        ports:
+        - protocol: TCP
+          containerPort: 8080
+        
+        resources:
+          requests:
+            cpu: "1000m"      # 1 CPU
+            memory: "1024Mi"  # 1 GiB
+          limits:
+            cpu: "2000m"      # 2 CPU
+            memory: "2048Mi"  # 2 GiB
+
+        # livenessProbe:
+        #   httpGet:
+        #     path: /
+        #     port: 8080
+        #   initialDelaySeconds: 30
+        #   periodSeconds: 10
+        #   timeoutSeconds: 5
+        #   failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 120
+          periodSeconds: 5
+          timeoutSeconds: 3
+          successThreshold: 1
+

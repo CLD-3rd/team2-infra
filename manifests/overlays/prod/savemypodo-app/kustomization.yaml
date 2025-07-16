@@ -1,0 +1,7 @@
+resources:
+- ../../../base/savemypodo-app
+
+patches:
+  - path: patch-hpa.yaml
+  - path: patch-deployment.yaml
+  - path: patch-service_monitor.yaml

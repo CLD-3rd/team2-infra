@@ -1,0 +1,179 @@
+prometheus:
+  prometheusSpec:
+    # 리소스 제한 설정
+    resources:
+      requests:
+        memory: 400Mi
+        cpu: 100m
+      limits:
+        memory: 2Gi
+        cpu: 1000m
+    
+    # 데이터 보존 기간
+    retention: 15d
+    
+    # 스토리지 설정
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp2
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 5Gi
+    
+    # 서비스 모니터 셀렉터 설정
+    # HelmValues에 있는것만 하지 않고 추가적으로 선택하겠다.
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    
+    # 추가 스크랩 설정
+    additionalScrapeConfigs:
+    - job_name: 'kubernetes-pods'
+      kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+          - default
+          - dev
+          - prod
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      metrics_path: /actuator/prometheus
+    
+  service:
+    type: LoadBalancer
+    annotations:
+      external-dns.alpha.kubernetes.io/hostname: prometheus.savemypodo.shop
+      service.beta.kubernetes.io/aws-load-balancer-scheme: internal
+
+grafana:
+  serviceAccount:
+    create: true
+    name: prometheus-stack-grafana
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::061039804626:role/savemypodo-cluster-grafana # IAM Role ARN 설정
+
+  # 서비스 타입 설정
+  service:
+    type: LoadBalancer
+    annotations:
+      external-dns.alpha.kubernetes.io/hostname: grafana.savemypodo.shop
+      service.beta.kubernetes.io/aws-load-balancer-scheme: internal
+
+  # 리소스 설정
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  
+  # 영구 스토리지
+  persistence:
+    enabled: true
+    storageClassName: gp2 # EKS의 기본 스토리지 클래스 사용
+    accessModes:
+      - ReadWriteOnce
+    size: 5Gi
+
+alertmanager:
+  config:
+    global:
+      smtp_smarthost: 'smtp.gmail.com:587'
+      smtp_from: 'michelle200323@gmail.com'
+      smtp_auth_username: 'michelle200323@gmail.com'
+      smtp_auth_password:
+        valueFrom:
+          secretKeyRef:
+            name: alertmanager-smtp-secret
+            key: smtp_auth_password
+      smtp_require_tls: true
+
+    route:
+      group_by: ['alertname']
+      group_wait: 10s
+      group_interval: 5m
+      repeat_interval: 1h
+      receiver: 'default-email'
+      routes:
+        - match:
+            alertname: HighCPUUsage
+          receiver: 'cpu-alert-email'
+        - match:
+            alertname: CriticalMemoryUsage
+          receiver: 'memory-alert-email'
+        - match:
+            alertname: AppDown
+          receiver: 'appdown-alert-email'
+        - match:
+            alertname: PodRestartingTooOften
+          receiver: 'pod-restart-alert-email'
+
+    receivers:
+      - name: 'default-email'
+        email_configs:
+          - to: 'michelle200323@gmail.com'
+            send_resolved: true
+            html: |
+              <p>⚠️ 기본 알람입니다</p>
+              <p>{{ .CommonAnnotations.summary }}</p>
+              <p>{{ .CommonAnnotations.description }}</p>
+
+      - name: 'cpu-alert-email'
+        email_configs:
+          - to: 'michelle200323@gmail.com'
+            send_resolved: true
+            html: |
+              <h3>🔥 CPU 사용률 경고</h3>
+              <p>📌 Alert: {{ .CommonLabels.alertname }}</p>
+              <p>🚨 Pod: {{ index .CommonLabels "pod" }}</p>
+              <p>💬 요약: {{ .CommonAnnotations.summary }}</p>
+              <p>📖 상세: {{ .CommonAnnotations.description }}</p>
+
+      - name: 'memory-alert-email'
+        email_configs:
+          - to: 'michelle200323@gmail.com'
+            send_resolved: true
+            html: |
+              <h3>💾 메모리 사용률 심각</h3>
+              <p>📌 Alert: {{ .CommonLabels.alertname }}</p>
+              <p>🧠 Pod: {{ index .CommonLabels "pod" }}</p>
+              <p>{{ .CommonAnnotations.description }}</p>
+
+      - name: 'appdown-alert-email'
+        email_configs:
+          - to: 'michelle200323@gmail.com'
+            send_resolved: true
+            html: |
+              <h3>🟥 애플리케이션 다운</h3>
+              <p>인스턴스: {{ .CommonLabels.instance }}</p>
+              <p>{{ .CommonAnnotations.description }}</p>
+
+      - name: 'pod-restart-alert-email'
+        email_configs:
+          - to: 'michelle200323@gmail.com'
+            send_resolved: true
+            html: |
+              <h3>♻️ Pod 재시작 과다</h3>
+              <p>Pod: {{ index .CommonLabels "pod" }}</p>
+              <p>{{ .CommonAnnotations.description }}</p>
+
+    
+  service:
+    type: LoadBalancer
+    annotations:
+      external-dns.alpha.kubernetes.io/hostname: alertmanager.savemypodo.shop
+      service.beta.kubernetes.io/aws-load-balancer-scheme: internal
+
+# Node Exporter 설정
+nodeExporter:
+  enabled: true
+
+# Kube State Metrics 설정
+kubeStateMetrics:
+  enabled: true

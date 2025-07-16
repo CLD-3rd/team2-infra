@@ -1,0 +1,55 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: amazon-cloudwatch
+  labels:
+    name: amazon-cloudwatch
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cloudwatch-agent
+  namespace: amazon-cloudwatch
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::061039804626:role/savemypodo-cluster-cloudwatch-agent
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: cloudwatch-agent
+  namespace: amazon-cloudwatch
+spec:
+  selector:
+    matchLabels:
+      name: cloudwatch-agent
+  template:
+    metadata:
+      labels:
+        name: cloudwatch-agent
+    spec:
+      containers:
+      - name: cloudwatch-agent
+        image: public.ecr.aws/cloudwatch-agent/cloudwatch-agent:1.300026.2b361
+        resources:
+          limits:
+            cpu: 200m
+            memory: 200Mi
+          requests:
+            cpu: 200m
+            memory: 200Mi
+        env:
+        - name: CW_CONFIG_CONTENT
+          value: |
+            {
+              "logs": {
+                "metrics_collected": {
+                  "kubernetes": {
+                    "savemypodo-cluster": "savemypodo-cluster",
+                    "metrics_collection_interval": 60
+                  }
+                },
+                "force_flush_interval": 15
+              }
+            }
+      serviceAccountName: cloudwatch-agent
+      terminationGracePeriodSeconds: 60
