@@ -499,10 +499,10 @@ export const options = {
   iterations: 2, // 총 2번 요청 (각 사용자당 1회)
 };
 
-// 실제 사용자 토큰을 여기 넣어줘
+// 테스트용 토큰
 const TOKENS = [
-  'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtaWNoZWxsZTIwMDMyM0BnbWFpbC5jb20iLCJyb2xlIjoiUk9MRV9VU0VSIiwiaWF0IjoxNzUyNTc1MjI4LCJleHAiOjE3NTI1NzcwMjh9.vlS7sZiYSgmpv3jix03x7fctZT5xM22jFzTmnfPATfQ',
-  'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjanNxdWR3bnMyNzgxQGdtYWlsLmNvbSIsInJvbGUiOiJST0xFX1VTRVIiLCJpYXQiOjE3NTI1NzUxMzksImV4cCI6MTc1MjU3NjkzOX0.M5VlNMemdm3cgvFBJ8stGV5Phy00bH8yw6h4BgDuMgQ',
+  'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0QGdtYWlsLmNvbSIsInJvbGUiOiJST0xFX1VTRVIiLCJpYXQiOjE3NTI1NzUyMjgsImV4cCI6MTc1MjU3NzAyOH0.vlS7sZiYSgmpv3jix03x7fctZT5xM22jFzTmnfPATfQ',
+  'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0MUBnbWFpbC5jb20iLCJyb2xlIjoiUk9MRV9VU0VSIiwiaWF0IjoxNzUyNTc1MjI4LCJleHAiOjE3NTI1NzcwMjh9.M5VlNMemdm3cgvFBJ8stGV5Phy00bH8yw6h4BgDuMgQ',
 ];
 
 export default function () {
